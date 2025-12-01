@@ -1,0 +1,47 @@
+# requirements.txt
+#用于生产，建议将 ~= 改为 == 并测试兼容性：
+#Django==5.2.7
+#djangorestframework==3.16.1
+#...
+#或使用 pip-tools 生成 requirements.lock。
+
+# ===== 核心框架 =====
+Django~=5.2.7
+djangorestframework~=3.16.1
+django-filter~=25.2
+
+# ===== 数据库与连接 =====
+psycopg2-binary~=2.9.11          # PostgreSQL 驱动（必需）
+asgiref~=3.10.0                  # Django ASGI 支持（已存在，保留）
+
+# ===== 动态模型 & 低代码运行时（关键补充）=====
+jsonschema~=4.23.0               # 用于校验 MethodLowCode.params 的 JSON 结构（强烈推荐）
+python-dotenv~=1.0.1             # 管理环境变量（开发/部署友好）
+
+# ===== 异步与任务 =====
+celery~=5.5.3
+redis~=5.2.0                     # Celery 默认 broker 推荐（若使用 Redis）
+
+# ===== 监控与可观测性 =====
+django-health-check
+sentry-sdk~=2.44.0
+prometheus_client~=0.23.1
+psutil~=7.1.3                    # 系统资源监控（健康检查可能用到）
+
+# ===== 数据处理（按需保留）=====
+pandas~=2.3.3                    # 若动态方法涉及数据分析
+openpyxl~=3.1.5                  # 若支持 Excel 导出
+
+# ===== 安全与权限（关键补充）=====
+cryptography~=44.0.0             # 若权限校验涉及 token/加密（如 JWT）
+
+# ===== 开发与调试（可选）=====
+django-extensions~=3.2.3         # 提供 runserver_plus, shell_plus 等（开发便利）
+
+# 必选（根据实际数据库二选一或都装）
+psycopg2-binary>=2.9.0   # PostgreSQL
+pymysql>=1.0.0          # MySQL
+
+# 可选（已在代码中做存在性检查）
+pydantic>=1.8,<3.0      # 参数校验（v1/v2 兼容）
+

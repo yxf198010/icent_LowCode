@@ -1,0 +1,979 @@
+<!-- templates/lowcode/model_form.html -->
+{% extends "base.html" %}
+{% load static custom_filters %}
+
+{% block title %}{{ title }} - 动态模型系统{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 基础全局样式 */
+    body {
+        background-color: #f8f9fa;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* 表单卡片样式优化 */
+    .form-card {
+        border-radius: 0.75rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+        transition: box-shadow 0.3s ease, transform 0.2s ease;
+        background-color: #ffffff;
+    }
+
+    .form-card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+        transform: translateY(-2px);
+    }
+
+    /* 表单标签样式 */
+    .form-label {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.9375rem;
+    }
+
+    .form-label .text-danger {
+        margin-left: 0.375rem;
+        font-size: 1rem;
+    }
+
+    /* 表单控件样式优化 */
+    .form-control,
+    .form-select,
+    textarea.form-control {
+        border-radius: 0.5rem;
+        padding: 0.625rem 0.875rem;
+        font-size: 0.9375rem;
+        border: 1px solid #e2e8f0;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        color: #2d3748;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 0.25rem rgba(96, 165, 250, 0.2);
+        outline: none;
+    }
+
+    .form-control::placeholder {
+        color: #94a3b8;
+        opacity: 1;
+    }
+
+    /* 错误提示样式 */
+    .invalid-feedback {
+        font-size: 0.8125rem;
+        margin-top: 0.25rem;
+        color: #dc2626;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .invalid-feedback::before {
+        content: "⚠️";
+        font-size: 0.875rem;
+    }
+
+    /* 帮助文本样式 */
+    .form-text {
+        font-size: 0.8125rem;
+        color: #64748b;
+        margin-top: 0.25rem;
+        line-height: 1.4;
+    }
+
+    /* 按钮样式优化 */
+    .btn {
+        border-radius: 0.375rem;
+        padding: 0.5625rem 1.125rem;
+        font-weight: 500;
+        font-size: 0.9375rem;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        border: none;
+    }
+
+    .btn-outline-secondary {
+        background-color: #ffffff;
+        border: 1px solid #cbd5e1;
+        color: #475569;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #f1f5f9;
+        border-color: #94a3b8;
+        color: #334155;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-primary {
+        background-color: #3b82f6;
+        color: #ffffff;
+    }
+
+    .btn-primary:hover {
+        background-color: #2563eb;
+        color: #ffffff;
+        box-shadow: 0 0.25rem 0.5rem rgba(59, 130, 246, 0.2);
+        transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+        box-shadow: 0 0.125rem 0.25rem rgba(59, 130, 246, 0.15);
+    }
+
+    /* 提交按钮加载状态 */
+    .submit-btn-loading {
+        opacity: 0.9;
+        pointer-events: none;
+    }
+
+    /* 表单集样式优化 */
+    .formset-section {
+        margin-top: 2.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .formset-heading {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .formset-heading i {
+        color: #3b82f6;
+    }
+
+    .formset-item {
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        background: #ffffff;
+        position: relative;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .formset-item:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.03);
+    }
+
+    .remove-formset-item {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        font-size: 1.125rem;
+        color: #94a3b8;
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 0.25rem;
+        border-radius: 50%;
+        transition: color 0.2s ease, background-color 0.2s ease;
+        width: 2rem;
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .remove-formset-item:hover {
+        color: #dc2626;
+        background-color: #fef2f2;
+    }
+
+    .add-formset-item {
+        margin-top: 1rem;
+        background-color: #f8fafc;
+        border: 1px dashed #cbd5e1;
+        color: #3b82f6;
+    }
+
+    .add-formset-item:hover {
+        background-color: #f0f9ff;
+        border-color: #3b82f6;
+        color: #2563eb;
+    }
+
+    /* AJAX 校验样式 */
+    .ajax-validating {
+        position: relative;
+    }
+
+    .ajax-validating::after {
+        content: "";
+        position: absolute;
+        right: 0.875rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid #3b82f6;
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    .ajax-error {
+        border-color: #dc2626 !important;
+    }
+
+    .ajax-success {
+        border-color: #15803d !important;
+    }
+
+    /* 表单组间距优化 */
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    /* 页面头部样式 */
+    .page-header {
+        display: flex;
+        flex-direction: column;
+        flex-md-row;
+        justify-content: space-between;
+        align-items: flex-start;
+        align-items-md: center;
+        margin-bottom: 1.75rem;
+        gap: 1rem;
+    }
+
+    .page-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1a202c;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .page-title i {
+        color: #3b82f6;
+        font-size: 1.5rem;
+    }
+
+    /* 响应式适配 */
+    .max-w-2xl {
+        max-width: 720px;
+    }
+
+    @media (max-width: 768px) {
+        .container-fluid {
+            padding: 0 1rem;
+        }
+
+        .card-body {
+            padding: 1.5rem !important;
+        }
+
+        .btn-group-actions {
+            flex-direction: column;
+            gap: 0.75rem !important;
+        }
+
+        .btn {
+            width: 100%;
+        }
+
+        .formset-item {
+            padding: 1rem;
+        }
+
+        .formset-section {
+            margin-top: 2rem;
+            padding-top: 1rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .page-header {
+            align-items: flex-start;
+        }
+
+        .form-label {
+            font-size: 0.875rem;
+        }
+
+        .form-control,
+        .form-select,
+        textarea.form-control {
+            padding: 0.5625rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .formset-item {
+            padding: 0.875rem;
+        }
+
+        .remove-formset-item {
+            top: 0.5rem;
+            right: 0.5rem;
+            width: 1.75rem;
+            height: 1.75rem;
+        }
+    }
+
+    /* 加载状态遮罩层 */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .loading-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .spinner {
+        width: 2.5rem;
+        height: 2.5rem;
+        border: 3px solid #f3f4f6;
+        border-top: 3px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* 复选框样式优化 */
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.25rem;
+    }
+
+    .form-check-input {
+        width: 1.125rem;
+        height: 1.125rem;
+        border-radius: 0.375rem;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s ease;
+    }
+
+    .form-check-input:checked {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+    }
+
+    .form-check-input:focus {
+        box-shadow: 0 0 0 0.25rem rgba(96, 165, 250, 0.2);
+    }
+
+    .form-check-label {
+        color: #475569;
+        font-size: 0.9375rem;
+        cursor: pointer;
+    }
+
+    /* 错误提示动画 */
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    .is-invalid {
+        animation: shake 0.3s ease-in-out;
+        border-color: #dc2626 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 全局加载遮罩层 -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+</div>
+
+<div class="container-fluid py-4">
+    <!-- 页面头部 -->
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-pencil-square"></i>{{ title }}
+        </h1>
+        <a href="{% url 'lowcode:model_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> 返回列表
+        </a>
+    </div>
+
+    <!-- 表单卡片 -->
+    <div class="card form-card shadow-sm border-0 max-w-2xl mx-auto">
+        <div class="card-body p-4 p-md-5">
+            <!-- 表单提交消息提示 -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4" role="alert">
+                    <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill{% elif message.tags == 'error' %}bi-exclamation-circle-fill{% else %}bi-info-circle-fill{% endif %} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" novalidate id="modelForm" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- 主表单字段 -->
+                {% for field in form %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}" class="form-label">
+                            {{ field.label }}
+                            {% if field.field.required %}
+                                <span class="text-danger" aria-hidden="true">*</span>
+                            {% endif %}
+                        </label>
+
+                        {% if field.field.widget|get_class_name == 'Textarea' %}
+                            <textarea
+                                name="{{ field.name }}"
+                                id="{{ field.id_for_label }}"
+                                class="form-control{% if field.errors %} is-invalid{% endif %}"
+                                rows="4"
+                                {% if field.field.required %}required{% endif %}
+                                placeholder="{{ field.field.help_text|default:'请输入'|add:field.label }}">
+                                {{ field.value|default:''|safe }}
+                            </textarea>
+                        {% elif field.field.widget|get_class_name == 'CheckboxInput' %}
+                            <div class="form-check">
+                                <input
+                                    type="checkbox"
+                                    name="{{ field.name }}"
+                                    id="{{ field.id_for_label }}"
+                                    class="form-check-input{% if field.errors %} is-invalid{% endif %}"
+                                    {% if field.value %}checked{% endif %}
+                                    {% if field.field.required %}required{% endif %}>
+                                <label class="form-check-label" for="{{ field.id_for_label }}">
+                                    {{ field.field.help_text|default:field.field.label }}
+                                </label>
+                            </div>
+                        {% else %}
+                            <!-- 其他字段类型（自动渲染） -->
+                            {{ field|add_class:"form-control"|add_error_class:"is-invalid" }}
+                        {% endif %}
+
+                        <!-- 帮助文本 -->
+                        {% if field.help_text %}
+                            <div class="form-text">
+                                <i class="bi bi-info-circle me-1"></i>{{ field.help_text }}
+                            </div>
+                        {% endif %}
+
+                        <!-- 错误提示 -->
+                        {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in field.errors %}
+                                    <div>{{ error|escape }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <!-- 动态字段表单集 -->
+                {% if field_formset %}
+                <div class="formset-section">
+                    <h5 class="formset-heading">
+                        <i class="bi bi-list-ul"></i>字段定义
+                    </h5>
+                    <div id="formset-container">
+                        {{ field_formset.management_form }}
+                        {% for formset_form in field_formset %}
+                            <div class="formset-item">
+                                <button type="button" class="remove-formset-item" title="移除字段">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                                {% for hidden in formset_form.hidden_fields %}
+                                    {{ hidden }}
+                                {% endfor %}
+                                {% for field in formset_form.visible_fields %}
+                                    <div class="form-group">
+                                        <label for="{{ field.id_for_label }}" class="form-label">
+                                            {{ field.label }}
+                                            {% if field.field.required %}
+                                                <span class="text-danger">*</span>
+                                            {% endif %}
+                                        </label>
+                                        {{ field|add_class:"form-control"|add_error_class:"is-invalid" }}
+                                        {% if field.help_text %}
+                                            <div class="form-text">{{ field.help_text }}</div>
+                                        {% endif %}
+                                        {% if field.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in field.errors %}
+                                                    {{ error|escape }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% empty %}
+                            <!-- 无初始字段时显示提示 -->
+                            <div class="alert alert-info text-center py-3 mb-3">
+                                <i class="bi bi-info-circle me-1"></i> 暂无字段，点击"添加字段"开始配置
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="button" id="add-formset-item" class="btn add-formset-item">
+                        <i class="bi bi-plus-lg"></i> 添加字段
+                    </button>
+                </div>
+                {% endif %}
+
+                <!-- 提交按钮组 -->
+                <div class="d-flex justify-content-end gap-3 mt-6 btn-group-actions">
+                    <a href="{% url 'lowcode:model_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> 取消
+                    </a>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <i class="bi bi-save"></i>
+                        <span id="submitBtnText">保存配置</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // 核心元素获取
+    const form = document.getElementById('modelForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitBtnText = document.getElementById('submitBtnText');
+    const formsetContainer = document.getElementById('formset-container');
+    const addBtn = document.getElementById('add-formset-item');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    // 元素存在性校验（避免报错）
+    if (!form) return;
+    const isFormsetEnabled = !!formsetContainer && !!addBtn;
+
+    // ========== 动态表单集管理（优化版） ==========
+    let formCount = isFormsetEnabled ? {{ field_formset.total_form_count|default:0 }} : 0;
+    const maxForms = isFormsetEnabled ? {{ field_formset.max_num|default:10 }} : 0;
+    let emptyFormHTML = '';
+
+    // 初始化空表单HTML（修复原代码前缀替换问题）
+    if (isFormsetEnabled) {
+        // 安全处理empty_form，避免转义问题
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = '{{ field_formset.empty_form|escapejs }}';
+        emptyFormHTML = tempDiv.innerHTML;
+    }
+
+    // 克隆空表单
+    function cloneEmptyForm(index) {
+        const newFormHTML = emptyFormHTML.replace(/__prefix__/g, index);
+        const newFormDiv = document.createElement('div');
+        newFormDiv.className = 'formset-item';
+        newFormDiv.innerHTML = `
+            <button type="button" class="remove-formset-item" title="移除字段">
+                <i class="bi bi-x"></i>
+            </button>
+            ${newFormHTML}
+        `;
+        return newFormDiv;
+    }
+
+    // 添加表单集字段
+    if (isFormsetEnabled) {
+        addBtn.addEventListener('click', function () {
+            if (formCount >= maxForms) {
+                showToast('已达最大字段数量限制（最多' + maxForms + '个）', 'warning');
+                return;
+            }
+
+            // 移除无字段提示
+            const emptyAlert = formsetContainer.querySelector('.alert-info');
+            if (emptyAlert) emptyAlert.remove();
+
+            // 添加新字段
+            const newItem = cloneEmptyForm(formCount);
+            formsetContainer.appendChild(newItem);
+            formCount++;
+            updateManagementForm();
+            bindFieldEvents(newItem.querySelectorAll('input, select, textarea'));
+
+            // 滚动到新添加的字段
+            newItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            newItem.querySelector('input, select, textarea').focus();
+        });
+
+        // 移除表单集字段
+        formsetContainer.addEventListener('click', function (e) {
+            if (e.target.closest('.remove-formset-item')) {
+                const item = e.target.closest('.formset-item');
+                if (item) {
+                    // 添加移除动画
+                    item.style.opacity = '0';
+                    item.style.transform = 'translateY(10px)';
+                    item.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+
+                    setTimeout(() => {
+                        item.remove();
+                        formCount--;
+                        updateManagementForm();
+
+                        // 当无字段时显示提示
+                        if (formCount === 0) {
+                            const emptyAlert = document.createElement('div');
+                            emptyAlert.className = 'alert alert-info text-center py-3 mb-3';
+                            emptyAlert.innerHTML = '<i class="bi bi-info-circle me-1"></i> 暂无字段，点击"添加字段"开始配置';
+                            formsetContainer.appendChild(emptyAlert);
+                        }
+                    }, 300);
+                }
+            }
+        });
+    }
+
+    // 更新表单集管理字段
+    function updateManagementForm() {
+        if (isFormsetEnabled) {
+            const totalFormsInput = document.querySelector('#id_field_formset-TOTAL_FORMS');
+            if (totalFormsInput) totalFormsInput.value = formCount;
+        }
+    }
+
+    // ========== 实时 AJAX 校验（优化版） ==========
+    const debounceTimers = {};
+    const validateUrl = "{% url 'lowcode:validate_field' %}";
+    const isValidationEnabled = !!validateUrl && validateUrl !== "{% url 'lowcode:validate_field' %}";
+
+    // 字段校验函数
+    function validateField(field) {
+        if (!isValidationEnabled) return;
+
+        const name = field.name;
+        const value = field.value.trim();
+
+        // 跳过空且非必填字段
+        if (!value && !field.hasAttribute('required')) {
+            clearValidationState(field);
+            return;
+        }
+
+        // 去抖处理
+        clearTimeout(debounceTimers[name]);
+        debounceTimers[name] = setTimeout(() => {
+            field.classList.add('ajax-validating');
+            fetch(validateUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    field_name: name,
+                    value: value,
+                    form_data: getFormData(),
+                    model_name: "{{ model_name|default:'' }}"
+                })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('校验请求失败');
+                return response.json();
+            })
+            .then(data => {
+                field.classList.remove('ajax-validating');
+                if (data.valid) {
+                    setValidationState(field, 'success');
+                } else {
+                    setValidationState(field, 'error', data.error || '字段校验失败');
+                }
+            })
+            .catch(error => {
+                console.error('AJAX 校验失败:', error);
+                field.classList.remove('ajax-validating');
+                setValidationState(field, 'error', '网络错误，校验失败');
+            });
+        }, 500);
+    }
+
+    // 设置校验状态
+    function setValidationState(field, state, message = '') {
+        // 移除所有状态类
+        field.classList.remove('ajax-success', 'ajax-error', 'is-invalid');
+
+        // 移除原有错误提示
+        const feedback = field.parentNode.querySelector('.invalid-feedback[data-ajax]');
+        if (feedback) feedback.remove();
+
+        // 设置对应状态
+        if (state === 'error') {
+            field.classList.add('ajax-error', 'is-invalid');
+            if (message) {
+                const errorFeedback = document.createElement('div');
+                errorFeedback.className = 'invalid-feedback d-block data-ajax';
+                errorFeedback.textContent = message;
+                field.parentNode.appendChild(errorFeedback);
+            }
+        } else if (state === 'success') {
+            field.classList.add('ajax-success');
+        }
+    }
+
+    // 清除校验状态
+    function clearValidationState(field) {
+        setValidationState(field, '');
+    }
+
+    // 获取表单数据
+    function getFormData() {
+        const formData = new FormData(form);
+        const obj = {};
+        for (let [key, value] of formData.entries()) {
+            // 处理文件字段（不传递文件内容）
+            if (value instanceof File) {
+                obj[key] = value.name;
+            } else {
+                obj[key] = value;
+            }
+        }
+        return obj;
+    }
+
+    // 获取 CSRF Token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // 绑定字段事件
+    function bindFieldEvents(fields) {
+        fields.forEach(field => {
+            // 实时校验事件
+            if (isValidationEnabled) {
+                field.addEventListener('input', () => validateField(field));
+                field.addEventListener('blur', () => validateField(field));
+            }
+
+            // 输入时清除错误状态
+            field.addEventListener('input', () => {
+                field.classList.remove('is-invalid', 'ajax-error');
+                const feedback = field.parentNode.querySelector('.invalid-feedback');
+                if (feedback) feedback.remove();
+            });
+        });
+    }
+
+    // 初始绑定所有字段事件
+    bindFieldEvents(form.querySelectorAll('input, select, textarea'));
+
+    // ========== 表单提交处理（优化版） ==========
+    let isSubmitting = false;
+    form.addEventListener('submit', function (e) {
+        if (isSubmitting) {
+            e.preventDefault();
+            return;
+        }
+
+        // 清除所有校验状态
+        form.querySelectorAll('.is-invalid, .ajax-error, .ajax-success').forEach(el => {
+            el.classList.remove('is-invalid', 'ajax-error', 'ajax-success');
+        });
+        form.querySelectorAll('.invalid-feedback[data-ajax]').forEach(el => el.remove());
+
+        // 基础必填项验证
+        let hasError = false;
+
+        // 验证输入框/下拉框
+        const requiredInputs = form.querySelectorAll('[required]:not([type="checkbox"])');
+        requiredInputs.forEach(input => {
+            if (!input.value.trim()) {
+                markFieldError(input, '此字段为必填项');
+                hasError = true;
+            }
+        });
+
+        // 验证复选框
+        const requiredCheckboxes = form.querySelectorAll('input[type="checkbox"][required]');
+        requiredCheckboxes.forEach(cb => {
+            if (!cb.checked) {
+                const label = cb.parentNode.querySelector('.form-check-label') || cb;
+                markFieldError(cb, '请勾选此项');
+                hasError = true;
+            }
+        });
+
+        // 有错误时阻止提交
+        if (hasError) {
+            e.preventDefault();
+            const firstError = form.querySelector('.is-invalid');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstError.focus();
+            }
+            showToast('表单存在错误，请检查后重试', 'error');
+            return;
+        }
+
+        // 无错误时提交表单
+        e.preventDefault(); // 注释此行以启用正常提交，保留此行可自定义提交逻辑
+        submitForm();
+    });
+
+    // 标记字段错误
+    function markFieldError(field, message) {
+        field.classList.add('is-invalid');
+
+        // 移除现有错误提示
+        const existingFeedback = field.parentNode.querySelector('.invalid-feedback');
+        if (existingFeedback) existingFeedback.remove();
+
+        // 添加新错误提示
+        const errorFeedback = document.createElement('div');
+        errorFeedback.className = 'invalid-feedback d-block';
+        errorFeedback.textContent = message;
+        field.parentNode.appendChild(errorFeedback);
+    }
+
+    // 提交表单（支持AJAX或正常提交）
+    function submitForm() {
+        isSubmitting = true;
+        submitBtn.disabled = true;
+        submitBtn.classList.add('submit-btn-loading');
+        submitBtnText.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> 保存中...';
+        loadingOverlay.classList.add('active');
+
+        // 这里使用正常表单提交（如需AJAX提交，可替换以下逻辑）
+        setTimeout(() => {
+            form.submit();
+        }, 300);
+
+        // AJAX提交示例（如需启用，注释上方2行，取消下方注释）
+        /*
+        fetch(form.action, {
+            method: form.method,
+            body: new FormData(form),
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (response.redirected) {
+                window.location.href = response.url;
+                return;
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                showToast('保存成功', 'success');
+                setTimeout(() => {
+                    window.location.href = "{% url 'lowcode:model_list' %}";
+                }, 1500);
+            } else {
+                throw new Error(data.message || '保存失败');
+            }
+        })
+        .catch(error => {
+            showToast(error.message || '保存失败，请稍后重试', 'error');
+            resetSubmitState();
+        });
+        */
+    }
+
+    // 重置提交状态
+    function resetSubmitState() {
+        isSubmitting = false;
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('submit-btn-loading');
+        submitBtnText.innerHTML = '保存配置';
+        loadingOverlay.classList.remove('active');
+    }
+
+    // ========== 工具函数 ==========
+    // 轻量级提示框
+    function showToast(message, type = 'info') {
+        // 移除现有提示框
+        const existingToast = document.querySelector('.toast-notification');
+        if (existingToast) existingToast.remove();
+
+        // 创建新提示框
+        const toast = document.createElement('div');
+        const iconMap = {
+            success: 'bi-check-circle-fill text-success',
+            error: 'bi-exclamation-circle-fill text-danger',
+            warning: 'bi-exclamation-triangle-fill text-warning',
+            info: 'bi-info-circle-fill text-info'
+        };
+        const bgMap = {
+            success: 'bg-success/95',
+            error: 'bg-danger/95',
+            warning: 'bg-warning/95',
+            info: 'bg-info/95'
+        };
+
+        toast.className = `toast-notification fixed bottom-3 right-3 ${bgMap[type]} text-white px-4 py-2 rounded-lg shadow-lg d-flex align-items-center gap-2 z-50 transition-all 0.3s ease`;
+        toast.innerHTML = `
+            <i class="bi ${iconMap[type]}"></i>
+            <span>${message}</span>
+        `;
+        document.body.appendChild(toast);
+
+        // 自动关闭
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(10px)';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // 监听窗口关闭事件，重置提交状态
+    window.addEventListener('beforeunload', function() {
+        if (isSubmitting) {
+            return '表单正在提交中，确定要离开吗？';
+        }
+    });
+
+    // 初始化
+    updateManagementForm();
+});
+</script>
+{% endblock %}

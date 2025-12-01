@@ -1,0 +1,583 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+
+{% block title %}{{ title }} - 动态模型系统{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 基础样式优化，增强视觉层次 */
+    .detail-container {
+        background-color: #f8f9fa;
+        min-height: calc(100vh - 120px);
+    }
+
+    .detail-card {
+        max-width: 1200px;
+        margin: 0 auto;
+        border: none;
+        border-radius: 0.75rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+
+    .detail-card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.07);
+    }
+
+    /* 字段标签样式优化 */
+    .detail-label {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 0.375rem;
+        display: flex;
+        align-items: center;
+        font-size: 0.9375rem;
+    }
+
+    .detail-label::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background-color: #e2e8f0;
+        margin-left: 0.75rem;
+        display: none;
+    }
+
+    /* 字段值容器优化 */
+    .detail-value {
+        background-color: #ffffff;
+        padding: 0.875rem 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid #e2e8f0;
+        min-height: 2.5em;
+        word-break: break-word;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .detail-value:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.1);
+    }
+
+    /* 媒体预览样式优化 */
+    .img-preview-container {
+        position: relative;
+        display: inline-block;
+        margin-top: 0.5rem;
+    }
+
+    .img-preview {
+        max-width: 180px;
+        max-height: 180px;
+        object-fit: cover;
+        border-radius: 0.5rem;
+        border: 1px solid #e2e8f0;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: zoom-in;
+    }
+
+    .img-preview:hover {
+        transform: scale(1.03);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    /* 图片放大预览层 */
+    .img-zoom-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.85);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .img-zoom-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .img-zoom-content {
+        max-width: 90%;
+        max-height: 90vh;
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .img-zoom-close {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .img-zoom-close:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* 文件预览样式优化 */
+    .file-preview {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s ease;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .file-preview:hover {
+        background-color: #f1f5f9;
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+    }
+
+    .file-icon {
+        width: 1.5rem;
+        height: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.25rem;
+        background-color: #e0f2fe;
+        color: #0284c7;
+    }
+
+    /* CKEditor 渲染样式优化 */
+    .ckeditor-rendered {
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        background-color: #fff;
+        line-height: 1.8;
+        overflow-wrap: break-word;
+        color: #2d3748;
+    }
+
+    .ckeditor-rendered p {
+        margin-bottom: 0.75rem;
+    }
+
+    .ckeditor-rendered h1,
+    .ckeditor-rendered h2,
+    .ckeditor-rendered h3 {
+        margin: 1.5rem 0 0.75rem;
+        color: #1a202c;
+    }
+
+    .ckeditor-rendered img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 0.375rem;
+        margin: 0.75rem 0;
+    }
+
+    /* 空数据样式优化 */
+    .empty-data {
+        color: #94a3b8;
+        font-style: italic;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .empty-data i {
+        font-size: 0.875rem;
+    }
+
+    /* 按钮组样式优化 */
+    .action-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .btn-outline-secondary {
+        border-color: #cbd5e1;
+        color: #475569;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #f1f5f9;
+        border-color: #94a3b8;
+    }
+
+    .btn-primary {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+    }
+
+    .btn-primary:hover {
+        background-color: #2563eb;
+        border-color: #2563eb;
+        transform: translateY(-1px);
+    }
+
+    /* 页面头部样式优化 */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .page-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1a202c;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .page-title i {
+        color: #3b82f6;
+        font-size: 1.5rem;
+    }
+
+    /* 响应式适配优化 */
+    @media (max-width: 992px) {
+        .detail-col {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .container-fluid {
+            padding: 0 1rem;
+        }
+
+        .detail-container {
+            padding: 1.5rem 0;
+            min-height: calc(100vh - 90px);
+        }
+
+        .detail-card {
+            padding: 0;
+        }
+
+        .detail-label::after {
+            display: block;
+        }
+
+        .detail-value {
+            padding: 0.75rem;
+        }
+
+        .img-preview {
+            max-width: 150px;
+            max-height: 150px;
+        }
+
+        .action-buttons {
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+
+        .page-title {
+            font-size: 1.125rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+
+    /* 加载状态样式（预留扩展） */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .loading-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .spinner {
+        width: 2.5rem;
+        height: 2.5rem;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 加载状态遮罩层（预留扩展） -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+</div>
+
+<!-- 图片放大预览层 -->
+<div class="img-zoom-overlay" id="imgZoomOverlay">
+    <img src="" alt="放大预览" class="img-zoom-content" id="imgZoomContent">
+    <button class="img-zoom-close" id="imgZoomClose">
+        <i class="bi bi-x"></i>
+    </button>
+</div>
+
+<div class="container-fluid detail-container py-4">
+    <!-- 页面头部 -->
+    <div class="page-header">
+        <h2 class="page-title">
+            <i class="bi bi-eye"></i>
+            {{ title }}
+        </h2>
+        <a href="{% url 'lowcode:dynamic_model_list' model_name=model_name %}"
+           class="btn btn-outline-secondary d-flex align-items-center gap-1"
+           title="返回列表">
+            <i class="bi bi-arrow-left"></i> 返回列表
+        </a>
+    </div>
+
+    <!-- 详情卡片 -->
+    <div class="card shadow-sm detail-card">
+        <div class="card-body p-4 p-md-5">
+            <!-- 消息提示 -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4" role="alert">
+                    <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill{% elif message.tags == 'error' %}bi-exclamation-circle-fill{% else %}bi-info-circle-fill{% endif %} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- 详情字段列表 -->
+            <div class="row g-4">
+                {% for item in enhanced_fields %}
+                <div class="col-md-6 detail-col">
+                    <div class="mb-4">
+                        <label class="detail-label">
+                            {{ item.label }}
+                            {% if item.required %}
+                                <span class="text-danger ms-1">*</span>
+                            {% endif %}
+                        </label>
+                        <div class="detail-value">
+                            {% if item.widget_type == 'checkbox' %}
+                                {% if item.value %}
+                                    <span class="d-flex align-items-center gap-1 text-success">
+                                        <i class="bi bi-check-circle-fill"></i> 是
+                                    </span>
+                                {% else %}
+                                    <span class="d-flex align-items-center gap-1 text-danger">
+                                        <i class="bi bi-x-circle-fill"></i> 否
+                                    </span>
+                                {% endif %}
+                            {% elif item.widget_type == 'image' %}
+                                {% if item.value %}
+                                    <div class="img-preview-container">
+                                        <img src="{{ item.value.url }}"
+                                             class="img-preview"
+                                             alt="{{ item.label }}预览图"
+                                             data-img-url="{{ item.value.url }}">
+                                    </div>
+                                {% else %}
+                                    <span class="empty-data">
+                                        <i class="bi bi-image"></i> 无图片
+                                    </span>
+                                {% endif %}
+                            {% elif item.widget_type == 'file' %}
+                                {% if item.value %}
+                                    <div class="file-preview">
+                                        <div class="file-icon">
+                                            <i class="bi bi-file-earmark"></i>
+                                        </div>
+                                        <a href="{{ item.value.url }}"
+                                           target="_blank"
+                                           class="text-decoration-none text-gray-700 hover:text-primary"
+                                           title="下载 {{ item.value.name|basename }}">
+                                            {{ item.value.name|basename|truncatechars:30 }}
+                                        </a>
+                                        <span class="text-xs text-gray-500 ms-2">
+                                            ({{ item.value.size|filesizeformat }})
+                                        </span>
+                                    </div>
+                                {% else %}
+                                    <span class="empty-data">
+                                        <i class="bi bi-file-earmark"></i> 无文件
+                                    </span>
+                                {% endif %}
+                            {% elif item.widget_type == 'ckeditor' %}
+                                {% if item.value %}
+                                    <div class="ckeditor-rendered">{{ item.value|safe }}</div>
+                                {% else %}
+                                    <span class="empty-data">
+                                        <i class="bi bi-align-left"></i> 无内容
+                                    </span>
+                                {% endif %}
+                            {% elif item.widget_type == 'select' %}
+                                {{ item.display_value|default:""|yesno:" ,<span class='empty-data'><i class='bi bi-select'></i> — 未选择 —</span>"|safe }}
+                            {% elif item.widget_type == 'date' %}
+                                {{ item.value|date:"Y-m-d"|default:"<span class='empty-data'><i class='bi bi-calendar'></i> — 无数据 —</span>"|safe }}
+                            {% elif item.widget_type == 'datetime' %}
+                                {{ item.value|date:"Y-m-d H:i:s"|default:"<span class='empty-data'><i class='bi bi-calendar-clock'></i> — 无数据 —</span>"|safe }}
+                            {% elif item.widget_type == 'boolean' %}
+                                {{ item.value|yesno:"是,否,<span class='empty-data'><i class='bi bi-question-circle'></i> — 无数据 —</span>"|safe }}
+                            {% else %}
+                                {{ item.value|default:"<span class='empty-data'><i class='bi bi-dash'></i> — 无数据 —</span>"|linebreaksbr|safe }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <!-- 无字段数据时的提示 -->
+                <div class="col-12">
+                    <div class="alert alert-info text-center py-5">
+                        <i class="bi bi-info-circle-fill fs-3 mb-2 text-primary"></i>
+                        <p class="mb-0">暂无字段数据可展示</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- 操作按钮组 -->
+            <div class="action-buttons">
+                <a href="{% url 'lowcode:dynamic_model_list' model_name=model_name %}"
+                   class="btn btn-outline-secondary"
+                   title="返回列表">
+                    返回
+                </a>
+                {% if has_edit_permission %}
+                <a href="{% url 'lowcode:dynamic_model_update' model_name=model_name pk=object.pk %}"
+                   class="btn btn-primary d-flex align-items-center gap-1"
+                   title="编辑此记录">
+                    <i class="bi bi-pencil"></i> 编辑
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 图片放大预览功能
+    const imgZoomOverlay = document.getElementById('imgZoomOverlay');
+    const imgZoomContent = document.getElementById('imgZoomContent');
+    const imgZoomClose = document.getElementById('imgZoomClose');
+    const imgPreviews = document.querySelectorAll('.img-preview');
+
+    // 点击图片放大
+    imgPreviews.forEach(preview => {
+        preview.addEventListener('click', function() {
+            const imgUrl = this.getAttribute('data-img-url');
+            imgZoomContent.src = imgUrl;
+            imgZoomOverlay.classList.add('active');
+            // 禁止页面滚动
+            document.body.style.overflow = 'hidden';
+        });
+    });
+
+    // 关闭放大预览
+    function closeZoomOverlay() {
+        imgZoomOverlay.classList.remove('active');
+        imgZoomContent.src = '';
+        // 恢复页面滚动
+        document.body.style.overflow = '';
+    }
+
+    imgZoomClose.addEventListener('click', closeZoomOverlay);
+    imgZoomOverlay.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeZoomOverlay();
+        }
+    });
+
+    // 键盘ESC关闭预览
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && imgZoomOverlay.classList.contains('active')) {
+            closeZoomOverlay();
+        }
+    });
+
+    // 按钮点击反馈（可选增强）
+    const actionButtons = document.querySelectorAll('.action-buttons .btn');
+    actionButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            if (this.href && !this.hasAttribute('data-no-loading')) {
+                document.getElementById('loadingOverlay').classList.add('active');
+            }
+        });
+    });
+
+    // 处理链接跳转错误（可选增强）
+    document.querySelectorAll('a[href^="{% url"]').forEach(link => {
+        link.addEventListener('error', function() {
+            document.getElementById('loadingOverlay').classList.remove('active');
+            alert('跳转失败，请稍后重试');
+        });
+    });
+});
+</script>
+{% endblock %}

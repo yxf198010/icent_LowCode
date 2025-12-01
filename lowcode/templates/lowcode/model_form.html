@@ -1,0 +1,737 @@
+<!-- templates/lowcode/model_form.html -->
+{% extends "base.html" %}
+{% load static custom_filters %}
+
+{% block title %}{{ title }} - 动态模型系统{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 基础全局样式 */
+    body {
+        background-color: #f8f9fa;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* 表单卡片样式优化 */
+    .form-card {
+        border-radius: 0.75rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+        transition: box-shadow 0.3s ease, transform 0.2s ease;
+        background-color: #ffffff;
+        border: none;
+    }
+
+    .form-card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+        transform: translateY(-2px);
+    }
+
+    /* 表单标签样式优化 */
+    .form-label {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.9375rem;
+    }
+
+    .form-label .text-danger {
+        margin-left: 0.375rem;
+        font-size: 1rem;
+        line-height: 1;
+    }
+
+    /* 表单控件样式统一优化 */
+    .form-control,
+    .form-select,
+    textarea.form-control {
+        border-radius: 0.5rem;
+        padding: 0.625rem 0.875rem;
+        font-size: 0.9375rem;
+        border: 1px solid #e2e8f0;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        color: #2d3748;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 0.25rem rgba(96, 165, 250, 0.2);
+        outline: none;
+        background-color: #fefeff;
+    }
+
+    .form-control::placeholder {
+        color: #94a3b8;
+        opacity: 1;
+    }
+
+    /* 错误提示样式优化 */
+    .invalid-feedback {
+        font-size: 0.8125rem;
+        margin-top: 0.25rem;
+        color: #dc2626;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        line-height: 1.4;
+    }
+
+    .invalid-feedback::before {
+        content: "⚠️";
+        font-size: 0.875rem;
+    }
+
+    /* 帮助文本样式优化 */
+    .form-text {
+        font-size: 0.8125rem;
+        color: #64748b;
+        margin-top: 0.25rem;
+        line-height: 1.4;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .form-text::before {
+        content: "ℹ️";
+        font-size: 0.875rem;
+    }
+
+    /* 按钮样式优化 */
+    .btn {
+        border-radius: 0.375rem;
+        padding: 0.5625rem 1.125rem;
+        font-weight: 500;
+        font-size: 0.9375rem;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        border: none;
+    }
+
+    /* 按钮主题色优化 */
+    .btn-outline-secondary {
+        background-color: #ffffff;
+        border: 1px solid #cbd5e1;
+        color: #475569;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #f1f5f9;
+        border-color: #94a3b8;
+        color: #334155;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-secondary {
+        background-color: #64748b;
+        color: #ffffff;
+    }
+
+    .btn-secondary:hover {
+        background-color: #475569;
+        color: #ffffff;
+        box-shadow: 0 0.125rem 0.25rem rgba(100, 116, 139, 0.2);
+    }
+
+    .btn-primary {
+        background-color: #3b82f6;
+        color: #ffffff;
+    }
+
+    .btn-primary:hover {
+        background-color: #2563eb;
+        color: #ffffff;
+        box-shadow: 0 0.25rem 0.5rem rgba(59, 130, 246, 0.2);
+        transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+        box-shadow: 0 0.125rem 0.25rem rgba(59, 130, 246, 0.15);
+    }
+
+    /* 提交按钮加载状态 */
+    .submit-btn-loading {
+        opacity: 0.9;
+        pointer-events: none;
+    }
+
+    /* 表单组样式优化 */
+    .form-group {
+        margin-bottom: 1.25rem;
+        position: relative;
+    }
+
+    /* 复选框样式优化 */
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.25rem;
+        padding: 0.25rem;
+        border-radius: 0.375rem;
+        transition: background-color 0.2s ease;
+    }
+
+    .form-check:hover {
+        background-color: #f8fafc;
+    }
+
+    .form-check-input {
+        width: 1.125rem;
+        height: 1.125rem;
+        border-radius: 0.375rem;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s ease;
+    }
+
+    .form-check-input:checked {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+    }
+
+    .form-check-input:focus {
+        box-shadow: 0 0 0 0.25rem rgba(96, 165, 250, 0.2);
+    }
+
+    .form-check-label {
+        color: #475569;
+        font-size: 0.9375rem;
+        cursor: pointer;
+        flex: 1;
+    }
+
+    /* 文本域样式优化 */
+    textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+        line-height: 1.6;
+    }
+
+    /* 页面头部样式 */
+    .page-header {
+        display: flex;
+        flex-direction: column;
+        flex-md-row;
+        justify-content: space-between;
+        align-items: flex-start;
+        align-items-md: center;
+        margin-bottom: 1.75rem;
+        gap: 1rem;
+    }
+
+    .page-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1a202c;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .page-title i {
+        color: #3b82f6;
+        font-size: 1.5rem;
+    }
+
+    /* 响应式适配优化 */
+    .max-w-2xl {
+        max-width: 720px;
+    }
+
+    @media (max-width: 768px) {
+        .container-fluid {
+            padding: 0 1rem;
+        }
+
+        .card-body {
+            padding: 1.5rem !important;
+        }
+
+        .btn-group-actions {
+            flex-direction: column;
+            gap: 0.75rem !important;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .page-header {
+            align-items: flex-start;
+        }
+
+        .form-label {
+            font-size: 0.875rem;
+        }
+
+        .form-control,
+        .form-select,
+        textarea.form-control {
+            padding: 0.5625rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .page-title {
+            font-size: 1.125rem;
+        }
+    }
+
+    /* 加载状态遮罩层 */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .loading-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .spinner {
+        width: 2.5rem;
+        height: 2.5rem;
+        border: 3px solid #f3f4f6;
+        border-top: 3px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* 错误提示动画 */
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    .is-invalid {
+        animation: shake 0.3s ease-in-out;
+        border-color: #dc2626 !important;
+    }
+
+    /* 表单提交成功/错误消息 */
+    .form-message {
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        font-size: 0.9375rem;
+    }
+
+    .form-message.success {
+        background-color: #f0fdf4;
+        color: #166534;
+        border: 1px solid #dcfce7;
+    }
+
+    .form-message.error {
+        background-color: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fee2e2;
+    }
+
+    .form-message i {
+        font-size: 1.25rem;
+        margin-top: 0.125rem;
+    }
+
+    .form-message p {
+        margin-bottom: 0;
+        line-height: 1.5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 全局加载遮罩层 -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+</div>
+
+<div class="container-fluid py-4">
+    <!-- 页面头部 -->
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-pencil-square"></i>{{ title }}
+        </h1>
+        <a href="{% url 'lowcode:model_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> 返回列表
+        </a>
+    </div>
+
+    <!-- 表单卡片 -->
+    <div class="card form-card shadow-sm border-0 max-w-2xl mx-auto">
+        <div class="card-body p-4 p-md-5">
+            <!-- 表单提交消息提示 -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="form-message {{ message.tags }} alert-dismissible fade show" role="alert">
+                    <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill{% elif message.tags == 'error' %}bi-exclamation-circle-fill{% else %}bi-info-circle-fill{% endif %}"></i>
+                    <p>{{ message }}</p>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" novalidate id="modelForm" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- 表单字段 -->
+                {% for field in form %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}" class="form-label">
+                            {{ field.label }}
+                            {% if field.field.required %}
+                                <span class="text-danger" aria-hidden="true">*</span>
+                            {% endif %}
+                        </label>
+
+                        <!-- 自动适配字段类型 -->
+                        {% if field.field.widget|get_class_name == 'Textarea' %}
+                            <textarea
+                                name="{{ field.name }}"
+                                id="{{ field.id_for_label }}"
+                                class="form-control{% if field.errors %} is-invalid{% endif %}"
+                                rows="4"
+                                {% if field.field.required %}required{% endif %}
+                                placeholder="{{ field.field.help_text|default:'请输入'|add:field.label }}">
+                                {{ field.value|default:''|safe }}
+                            </textarea>
+                        {% elif field.field.widget|get_class_name == 'CheckboxInput' %}
+                            <div class="form-check">
+                                <input
+                                    type="checkbox"
+                                    name="{{ field.name }}"
+                                    id="{{ field.id_for_label }}"
+                                    class="form-check-input{% if field.errors %} is-invalid{% endif %}"
+                                    {% if field.value %}checked{% endif %}
+                                    {% if field.field.required %}required{% endif %}>
+                                <label class="form-check-label" for="{{ field.id_for_label }}">
+                                    {{ field.field.help_text|default:field.field.label }}
+                                </label>
+                            </div>
+                        {% elif field.field.widget|get_class_name == 'FileInput' %}
+                            <div class="input-group">
+                                <input
+                                    type="file"
+                                    name="{{ field.name }}"
+                                    id="{{ field.id_for_label }}"
+                                    class="form-control{% if field.errors %} is-invalid{% endif %}"
+                                    {% if field.field.required %}required{% endif %}>
+                            </div>
+                            {% if field.value and field.value.url %}
+                                <div class="mt-2">
+                                    {% if field.field.widget|get_class_name == 'ClearableFileInput' %}
+                                        <div class="form-text">
+                                            当前文件: <a href="{{ field.value.url }}" target="_blank">{{ field.value.name|basename }}</a>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <!-- 其他字段类型（统一添加样式类） -->
+                            {{ field|add_class:"form-control"|add_error_class:"is-invalid" }}
+                        {% endif %}
+
+                        <!-- 帮助文本 -->
+                        {% if field.help_text and field.field.widget|get_class_name != 'CheckboxInput' %}
+                            <div class="form-text">
+                                {{ field.help_text }}
+                            </div>
+                        {% endif %}
+
+                        <!-- 错误提示 -->
+                        {% if field.errors %}
+                            <div class="invalid-feedback d-block" role="alert">
+                                {% for error in field.errors %}
+                                    <div>{{ error|escape }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <!-- 提交按钮组 -->
+                <div class="d-flex justify-content-end gap-3 mt-6 btn-group-actions">
+                    <a href="{% url 'lowcode:model_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> 取消
+                    </a>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <i class="bi bi-save"></i>
+                        <span id="submitBtnText">保存配置</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // 核心元素获取
+    const form = document.getElementById('modelForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitBtnText = document.getElementById('submitBtnText');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    // 元素存在性校验（避免报错）
+    if (!form || !submitBtn) return;
+
+    // 表单提交状态
+    let isSubmitting = false;
+
+    // ========== 表单提交处理（优化版） ==========
+    form.addEventListener('submit', function (e) {
+        if (isSubmitting) {
+            e.preventDefault();
+            return;
+        }
+
+        // 清除所有错误状态
+        form.querySelectorAll('.is-invalid, .invalid-feedback').forEach(el => {
+            if (el.classList.contains('is-invalid')) {
+                el.classList.remove('is-invalid');
+            } else if (el.classList.contains('invalid-feedback')) {
+                el.remove();
+            }
+        });
+
+        // 基础必填项验证
+        let hasError = false;
+
+        // 验证输入框/下拉框/文本域
+        const requiredInputs = form.querySelectorAll('[required]:not([type="checkbox"]):not([type="file"])');
+        requiredInputs.forEach(input => {
+            if (!input.value.trim()) {
+                markFieldError(input, '此字段为必填项');
+                hasError = true;
+            }
+        });
+
+        // 验证复选框
+        const requiredCheckboxes = form.querySelectorAll('input[type="checkbox"][required]');
+        requiredCheckboxes.forEach(cb => {
+            if (!cb.checked) {
+                markFieldError(cb, '请勾选此项');
+                hasError = true;
+            }
+        });
+
+        // 验证文件字段（如果有必填要求）
+        const requiredFiles = form.querySelectorAll('input[type="file"][required]');
+        requiredFiles.forEach(fileInput => {
+            // 编辑场景下如果已有文件，允许为空
+            const isEditMode = fileInput.closest('form').querySelector('[name="id"]') !== null;
+            const hasExistingFile = fileInput.parentNode.querySelector('.form-text a') !== null;
+
+            if (!isEditMode && !hasExistingFile && fileInput.files.length === 0) {
+                markFieldError(fileInput, '请上传文件');
+                hasError = true;
+            }
+        });
+
+        // 有错误时阻止提交
+        if (hasError) {
+            e.preventDefault();
+            const firstError = form.querySelector('.is-invalid');
+            if (firstError) {
+                // 平滑滚动到第一个错误字段
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // 聚焦到错误字段（输入框类型）
+                if (['INPUT', 'TEXTAREA', 'SELECT'].includes(firstError.tagName)) {
+                    firstError.focus();
+                }
+            }
+            showToast('表单存在错误，请检查后重试', 'error');
+            return;
+        }
+
+        // 无错误时提交表单
+        e.preventDefault(); // 注释此行以启用正常提交，保留此行可自定义提交逻辑
+        submitForm();
+    });
+
+    // ========== 工具函数 ==========
+    // 标记字段错误
+    function markFieldError(field, message) {
+        // 添加错误类
+        field.classList.add('is-invalid');
+
+        // 找到字段容器
+        const formGroup = field.closest('.form-group');
+        if (!formGroup) return;
+
+        // 移除现有错误提示
+        const existingFeedback = formGroup.querySelector('.invalid-feedback');
+        if (existingFeedback) existingFeedback.remove();
+
+        // 添加新错误提示
+        const errorFeedback = document.createElement('div');
+        errorFeedback.className = 'invalid-feedback d-block';
+        errorFeedback.textContent = message;
+        formGroup.appendChild(errorFeedback);
+    }
+
+    // 提交表单
+    function submitForm() {
+        isSubmitting = true;
+        // 更新按钮状态
+        submitBtn.disabled = true;
+        submitBtn.classList.add('submit-btn-loading');
+        submitBtnText.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> 保存中...';
+        // 显示加载遮罩
+        loadingOverlay.classList.add('active');
+
+        // 这里使用正常表单提交（如需AJAX提交，可替换以下逻辑）
+        setTimeout(() => {
+            form.submit();
+        }, 300);
+
+        // AJAX提交示例（如需启用，注释上方2行，取消下方注释）
+        /*
+        fetch(form.action, {
+            method: form.method,
+            body: new FormData(form),
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (response.redirected) {
+                window.location.href = response.url;
+                return;
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                showToast('保存成功', 'success');
+                setTimeout(() => {
+                    window.location.href = "{% url 'lowcode:model_list' %}";
+                }, 1500);
+            } else {
+                throw new Error(data.message || '保存失败');
+            }
+        })
+        .catch(error => {
+            showToast(error.message || '保存失败，请稍后重试', 'error');
+            resetSubmitState();
+        });
+        */
+    }
+
+    // 重置提交状态
+    function resetSubmitState() {
+        isSubmitting = false;
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('submit-btn-loading');
+        submitBtnText.innerHTML = '保存配置';
+        loadingOverlay.classList.remove('active');
+    }
+
+    // 轻量级提示框
+    function showToast(message, type = 'info') {
+        // 移除现有提示框
+        const existingToast = document.querySelector('.toast-notification');
+        if (existingToast) existingToast.remove();
+
+        // 创建新提示框
+        const toast = document.createElement('div');
+        const iconMap = {
+            success: 'bi-check-circle-fill text-success',
+            error: 'bi-exclamation-circle-fill text-danger',
+            warning: 'bi-exclamation-triangle-fill text-warning',
+            info: 'bi-info-circle-fill text-info'
+        };
+        const bgMap = {
+            success: 'bg-success/95',
+            error: 'bg-danger/95',
+            warning: 'bg-warning/95',
+            info: 'bg-info/95'
+        };
+
+        toast.className = `toast-notification fixed bottom-3 right-3 ${bgMap[type]} text-white px-4 py-2 rounded-lg shadow-lg d-flex align-items-center gap-2 z-50 transition-all 0.3s ease`;
+        toast.innerHTML = `
+            <i class="bi ${iconMap[type]}"></i>
+            <span>${message}</span>
+        `;
+        document.body.appendChild(toast);
+
+        // 显示动画
+        setTimeout(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateY(0)';
+        }, 10);
+
+        // 自动关闭
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(10px)';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // 输入框实时清除错误状态
+    form.querySelectorAll('input, select, textarea').forEach(field => {
+        field.addEventListener('input', function() {
+            if (this.classList.contains('is-invalid')) {
+                this.classList.remove('is-invalid');
+                const formGroup = this.closest('.form-group');
+                if (formGroup) {
+                    const errorFeedback = formGroup.querySelector('.invalid-feedback');
+                    if (errorFeedback) errorFeedback.remove();
+                }
+            }
+        });
+    });
+
+    // 复选框实时清除错误状态
+    form.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (this.classList.contains('is-invalid')) {
+                this.classList.remove('is-invalid');
+                const formGroup = this.closest('.form-group');
+                if (formGroup) {
+                    const errorFeedback = formGroup.querySelector('.invalid-feedback');
+                    if (errorFeedback) errorFeedback.remove();
+                }
+            }
+        });
+    });
+
+    // 窗口关闭事件监听
+    window.addEventListener('beforeunload', function() {
+        if (isSubmitting) {
+            return '表单正在提交中，确定要离开吗？';
+        }
+    });
+});
+</script>
+{% endblock %}

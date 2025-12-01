@@ -1,0 +1,196 @@
+<!-- templates/lowcode/dynamic_model_confirm_delete.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}确认删除 - {{ verbose_name }} - 动态模型系统{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 基础样式保持，优化响应式和交互体验 */
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .main-card {
+        border-radius: 0.75rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.07);
+        transition: box-shadow 0.3s ease, transform 0.2s ease;
+        border: none;
+    }
+
+    .main-card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+    }
+
+    /* 优化警告框样式，增强视觉提示 */
+    .delete-alert {
+        border-left: 4px solid #ffc107;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* 按钮组响应式调整 */
+    .btn-group {
+        gap: 0.75rem;
+    }
+
+    @media (max-width: 576px) {
+        .btn-group {
+            flex-direction: column;
+        }
+
+        .btn-group .btn {
+            width: 100%;
+        }
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 0.75rem;
+        }
+    }
+
+    /* 加载状态样式 */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .loading-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .spinner {
+        width: 3rem;
+        height: 3rem;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #dc3545;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 加载状态遮罩层 -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+</div>
+
+<div class="container-fluid py-4">
+    <!-- 页面头部：优化响应式布局和标题显示 -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2 page-header">
+        <h1 class="h4 fw-bold m-0">
+            <i class="bi bi-trash3 me-2 text-danger"></i>确认删除 {{ verbose_name }}
+        </h1>
+        <a href="{{ request.META.HTTP_REFERER|default:'' }}"
+           class="btn btn-outline-secondary d-inline-flex align-items-center"
+           onclick="window.history.back(); return false;">
+            <i class="bi bi-arrow-left me-1"></i> 返回
+        </a>
+    </div>
+
+    <!-- 确认卡片：增强视觉层次和信息展示 -->
+    <div class="card main-card">
+        <div class="card-body p-4">
+            <div class="mb-4">
+                <p class="text-gray-700 mb-3">您正在执行删除操作，请确认以下信息：</p>
+
+                <!-- 优化警告提示，增加模型名称和记录ID -->
+                <div class="alert alert-warning delete-alert d-flex align-items-start" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-3 fs-5 text-warning mt-0.5"></i>
+                    <div>
+                        <strong class="text-dark">模型名称：</strong>{{ verbose_name }}<br>
+                        <strong class="text-dark">记录名称：</strong>{{ object_name|default:object }}<br>
+                        <strong class="text-dark">记录ID：</strong>{{ object.pk }}<br>
+                        <small class="text-muted mt-1 d-block">⚠️ 此操作不可撤销，删除后数据将永久丢失，请谨慎操作！</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 删除表单：增加提交状态防止重复点击 -->
+            <form method="post" id="deleteForm">
+                {% csrf_token %}
+
+                <!-- 隐藏域：记录返回地址，增强兼容性 -->
+                <input type="hidden" name="next" value="{{ request.META.HTTP_REFERER|default:'' }}">
+
+                <div class="d-flex gap-2 btn-group">
+                    <button type="submit" class="btn btn-danger d-flex align-items-center" id="confirmDeleteBtn">
+                        <i class="bi bi-trash3 me-1"></i> 确认删除
+                    </button>
+                    <a href="{{ request.META.HTTP_REFERER|default:'' }}"
+                       class="btn btn-outline-secondary d-flex align-items-center"
+                       onclick="window.history.back(); return false;">
+                        <i class="bi bi-x-circle me-1"></i> 取消
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 优化表单提交体验，防止重复提交和增加加载状态
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteForm = document.getElementById('deleteForm');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    // 表单提交事件处理
+    deleteForm.addEventListener('submit', function(e) {
+        // 禁用提交按钮，防止重复点击
+        confirmDeleteBtn.disabled = true;
+        confirmDeleteBtn.innerHTML = '<i class="bi bi-spinner bi-spin me-1"></i> 处理中...';
+
+        // 显示加载状态
+        loadingOverlay.classList.add('active');
+    });
+
+    // 处理浏览器返回按钮兼容性
+    window.addEventListener('popstate', function() {
+        loadingOverlay.classList.remove('active');
+        confirmDeleteBtn.disabled = false;
+        confirmDeleteBtn.innerHTML = '<i class="bi bi-trash3 me-1"></i> 确认删除';
+    });
+
+    // 错误处理：如果表单提交失败，恢复按钮状态
+    setTimeout(function() {
+        if (deleteForm && !deleteForm.classList.contains('submitted')) {
+            confirmDeleteBtn.disabled = false;
+            confirmDeleteBtn.innerHTML = '<i class="bi bi-trash3 me-1"></i> 确认删除';
+            loadingOverlay.classList.remove('active');
+        }
+    }, 5000); // 5秒后自动恢复，防止卡死
+});
+</script>
+{% endblock %}

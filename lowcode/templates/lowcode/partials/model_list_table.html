@@ -1,0 +1,117 @@
+<!-- templates/lowcode/partials/model_list_table.html -->
+{% load custom_filters %}
+
+{% if model_list %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle" id="modelTable">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 40px;">
+                        <input type="checkbox" class="form-check-input" id="selectAll" aria-label="全选所有模型">
+                    </th>
+                    <th>模型名称</th>
+                    <th>数据库表名</th>
+                    <th>字段数量</th>
+                    <th>状态</th>
+                    <th>创建时间</th>
+                    <th style="width: 160px;">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for model in model_list %}
+                <tr class="model-row"
+                    data-model-id="{{ model.id }}"
+                    data-model-name="{{ model.name }}"
+                    data-table-name="{{ model.table_name }}">
+                    <td>
+                        <input type="checkbox"
+                               class="form-check-input selectItem"
+                               value="{{ model.id }}"
+                               aria-label="选择模型 {{ model.name }}">
+                    </td>
+                    <td>
+                        <strong>{{ model.name }}</strong>
+                        {% if model.description %}
+                            <br><small class="text-muted">{{ model.description|truncatechars:30 }}</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <code class="bg-light px-2 py-1 rounded">{{ model.table_name }}</code>
+                    </td>
+                    <td>
+                        {{ model.fields|length }}
+                    </td>
+                    <td>
+                        {% if model.is_active %}
+                            <span class="boolean-tag tag-active">已激活</span>
+                        {% else %}
+                            <span class="boolean-tag tag-inactive">未激活</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <small class="text-muted">{{ model.created_at|date:"Y-m-d H:i" }}</small>
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="模型 {{ model.name }} 的操作">
+                            <a href="{% url 'LowCode:model_detail' model.id %}"
+                               class="btn btn-outline-primary"
+                               title="查看详情"
+                               aria-label="查看 {{ model.name }} 详情">
+                                <i class="bi bi-eye" aria-hidden="true"></i>
+                            </a>
+                            <a href="{% url 'LowCode:model_update' model.id %}"
+                               class="btn btn-outline-warning"
+                               title="编辑模型"
+                               aria-label="编辑 {{ model.name }}">
+                                <i class="bi bi-pencil" aria-hidden="true"></i>
+                            </a>
+                            <button type="button"
+                                    class="btn btn-outline-danger delete-model-btn"
+                                    data-model-id="{{ model.id }}"
+                                    data-model-name="{{ model.name }}"
+                                    data-delete-url="{% url 'LowCode:model_delete' model.id %}"
+                                    title="删除模型"
+                                    aria-label="删除模型 {{ model.name }}">
+                                <i class="bi bi-trash3" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 分页（如果启用了 paginate_by） -->
+    {% if is_paginated %}
+    <nav aria-label="模型分页导航" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if search_keyword %}&search={{ search_keyword|urlencode }}{% endif %}" aria-label="首页">首页</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_keyword %}&search={{ search_keyword|urlencode }}{% endif %}" aria-label="上一页">上一页</a>
+                </li>
+            {% endif %}
+
+            <li class="page-item disabled" aria-current="page">
+                <span class="page-link">第 {{ page_obj.number }} / {{ page_obj.paginator.num_pages }} 页</span>
+            </li>
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_keyword %}&search={{ search_keyword|urlencode }}{% endif %}" aria-label="下一页">下一页</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_keyword %}&search={{ search_keyword|urlencode }}{% endif %}" aria-label="末页">末页</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+{% else %}
+    <!-- 空列表：不渲染任何内容，由父模板通过 JS 控制空状态 -->
+    <!-- 此处留空，确保 .model-row 数量为 0，触发主模板的 emptyState -->
+{% endif %}

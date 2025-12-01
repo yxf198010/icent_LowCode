@@ -1,0 +1,7 @@
+功能 请求URL示例 说明 
+分页查询所有日志  GET /api/method-call-logs/?page=1&page_size=10  默认按调用时间倒序，每页10条 
+按模型名筛选  GET /api/method-call-logs/?model_name=DynamicOrder  仅查询DynamicOrder模型的方法调用日志 
+按结果状态筛选  GET /api/method-call-logs/?result_status=fail  仅查询调用失败的日志 
+按时间范围筛选  GET /api/method-call-logs/?start_time=2024-05-20 00:00:00&end_time=2024-05-21 23:59:59  查询指定时间段日志 
+模糊搜索方法名  GET /api/method-call-logs/?search=calculate  搜索方法名包含"calculate"的日志 
+排序（按耗时正序）  GET /api/method-call-logs/?ordering=time_cost  按调用耗时从短到长排序 

@@ -1,0 +1,608 @@
+{% extends "base.html" %}
+{% load static custom_filters %}
+
+{% block title %}系统首页 - 动态模型系统{% endblock %}
+
+{% block page_title %}
+<!-- 页面标题（适配 base.html 结构） -->
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* === 全局变量 === */
+    :root {
+        --primary: #0d6efd;
+        --primary-light: #e7f1ff;
+        --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+        --card-shadow-hover: 0 10px 20px rgba(0, 0, 0, 0.05);
+        --transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* === 欢迎卡片 === */
+    .welcome-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #eef2f7 100%);
+        border: none;
+    }
+
+    /* === 概览卡片 === */
+    .overview-card {
+        border-radius: 0.75rem;
+        transition: var(--transition);
+        border: none;
+        box-shadow: var(--card-shadow);
+        background: linear-gradient(145deg, #ffffff 0%, #f9fafb 100%);
+        overflow: hidden;
+        position: relative;
+        height: 100%;
+    }
+    .overview-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: var(--primary);
+        opacity: 0.8;
+    }
+    .overview-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--card-shadow-hover);
+    }
+    .overview-card .card-body {
+        padding: 1.75rem;
+        position: relative;
+        z-index: 1;
+    }
+    .overview-card .card-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.25rem;
+        font-size: 1.5rem;
+        background: rgba(13, 110, 253, 0.1);
+        color: var(--primary);
+        transition: var(--transition);
+    }
+    .overview-card:hover .card-icon {
+        transform: scale(1.1);
+    }
+    .overview-card .card-title {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 0.5rem;
+        letter-spacing: 0.02em;
+    }
+    .overview-card .card-value {
+        font-size: 2.25rem;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 0.75rem;
+        font-feature-settings: "tnum"; /* 等宽数字 */
+    }
+    .overview-card a {
+        font-size: 0.875rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        transition: color 0.2s ease;
+    }
+    .overview-card a:hover {
+        text-decoration: underline;
+    }
+
+    /* === 功能卡片 === */
+    .feature-card {
+        border-radius: 0.75rem;
+        border: 1px solid #e9ecef;
+        transition: var(--transition);
+        height: 100%;
+        background-color: #ffffff;
+    }
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+        border-color: var(--primary);
+    }
+    .feature-card .card-body {
+        padding: 1.5rem;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .feature-card .card-icon {
+        font-size: 2rem;
+        color: var(--primary);
+        margin-bottom: 1rem;
+        transition: color 0.3s ease;
+    }
+    .feature-card:hover .card-icon {
+        color: #0b5ed7;
+    }
+    .feature-card .card-title {
+        font-size: 1.05rem;
+        font-weight: 500;
+        margin-bottom: 0.75rem;
+        color: #212529;
+    }
+    .feature-card .card-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-bottom: 1.25rem;
+        flex-grow: 1;
+    }
+
+    /* === 快速操作按钮 === */
+    .quick-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.25rem;
+        border-radius: 0.5rem;
+        transition: var(--transition);
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    /* === 最近动态列表 === */
+    .activity-item {
+        transition: background-color 0.2s ease;
+    }
+    .activity-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    /* === 状态徽章 === */
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 0.35em 0.6em;
+    }
+
+    /* === 空状态 === */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 200px;
+        color: #6c757d;
+    }
+
+    /* === 滚动动画相关 === */
+    .count-animate {
+        opacity: 0.3;
+        transition: opacity 0.5s ease;
+    }
+    .count-animate.visible {
+        opacity: 1;
+    }
+
+    /* === 响应式断点优化 === */
+    @media (max-width: 992px) {
+        .overview-card .card-value { font-size: 1.8rem; }
+        .feature-card .card-text { font-size: 0.825rem; }
+    }
+    @media (max-width: 768px) {
+        .overview-card .card-value { font-size: 1.5rem; }
+        .overview-card .card-body { padding: 1.25rem; }
+        .feature-card { margin-bottom: 1.25rem; }
+        .welcome-card .col-md-4 { display: none; }
+        .quick-btn { padding: 0.75rem 1rem; }
+        .card-header h2 { font-size: 1rem; }
+    }
+    @media (max-width: 576px) {
+        .overview-card { margin-bottom: 1rem; }
+        .quick-btn { font-size: 0.9rem; }
+        .welcome-card .card-body { padding: 1.25rem !important; }
+        .card-header h2, .card-header h5 { font-size: 0.95rem; }
+        .feature-card .card-title { font-size: 1rem; }
+        .activity-item .d-flex { flex-direction: column; align-items: flex-start !important; }
+        .activity-item .ms-3 { margin-left: 0 !important; margin-top: 0.5rem; align-self: flex-start !important; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 欢迎区域 -->
+<section aria-labelledby="welcome-heading" class="mb-6">
+    <div class="card shadow-sm welcome-card">
+        <div class="card-body p-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 id="welcome-heading" class="h3 fw-bold mb-3">
+                        欢迎使用 <span class="text-primary">动态模型系统</span>
+                    </h1>
+                    <p class="text-muted mb-0 fs-6">
+                        基于 Django + Bootstrap 5 构建的低代码平台，支持动态创建模型、配置字段、快速生成 CRUD 操作。
+                        {% if user.is_authenticated %}
+                        <br>您好，<strong>{{ user.username|escape }}</strong>！今天也是高效工作的一天～
+                        {% endif %}
+                    </p>
+                    <div class="mt-3 text-muted small">
+                        <i class="bi bi-clock me-1" aria-hidden="true"></i>
+                        数据更新时间：{{ current_time|date:"Y-m-d H:i:s" }}
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex justify-content-md-end mt-3 mt-md-0">
+                    <i class="bi bi-speedometer2 text-primary" style="font-size: 3.5rem; opacity: 0.8;" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 数据概览（适配 model_configs 数据结构） -->
+{% if model_configs %}
+<section aria-labelledby="overview-heading" class="mb-6">
+    <h2 id="overview-heading" class="visually-hidden">数据概览</h2>
+    <div class="row g-4">
+        <!-- 模型总数 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card overview-card" role="region" aria-labelledby="title-1">
+                <div class="card-body">
+                    <div class="card-icon"><i class="bi bi-table" aria-hidden="true"></i></div>
+                    <h3 id="title-1" class="card-title">模型总数</h3>
+                    <div class="card-value text-primary count-animate">{{ model_configs|length }}</div>
+                    <a href="{% url 'lowcode:model-list' %}" class="text-primary">
+                        <i class="bi bi-arrow-right" aria-hidden="true"></i> 查看全部
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- 已创建表的模型数 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card overview-card" role="region" aria-labelledby="title-2">
+                <div class="card-body">
+                    <div class="card-icon"><i class="bi bi-database" aria-hidden="true"></i></div>
+                    <h3 id="title-2" class="card-title">已创建数据表</h3>
+                    <div class="card-value text-success count-animate">
+                        {{ model_configs|rejectattr:"exists_in_db"|list|length|add:"-"|add:model_configs|length }}
+                    </div>
+                    <a href="{% url 'lowcode:model-list' %}" class="text-success">
+                        <i class="bi bi-arrow-right" aria-hidden="true"></i> 管理数据
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- 总字段数 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card overview-card" role="region" aria-labelledby="title-3">
+                <div class="card-body">
+                    <div class="card-icon"><i class="bi bi-ui-checks" aria-hidden="true"></i></div>
+                    <h3 id="title-3" class="card-title">总字段数</h3>
+                    <div class="card-value text-info count-animate">
+                        {% with total_fields=0 %}
+                            {% for model in model_configs %}
+                                {% with field_count=model.config.fields.count|default:0 %}
+                                    {% with total_fields=total_fields|add:field_count %}
+                                    {% endwith %}
+                                {% endwith %}
+                            {% endfor %}
+                            {{ total_fields }}
+                        {% endwith %}
+                    </div>
+                    <a href="{% url 'admin:lowcode_modellowcode_changelist' %}" class="text-info">
+                        <i class="bi bi-arrow-right" aria-hidden="true"></i> 配置字段
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- 总记录数 -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card overview-card" role="region" aria-labelledby="title-4">
+                <div class="card-body">
+                    <div class="card-icon"><i class="bi bi-file-earmark-text" aria-hidden="true"></i></div>
+                    <h3 id="title-4" class="card-title">总记录数</h3>
+                    <div class="card-value text-warning count-animate">
+                        {% with total_records=0 %}
+                            {% for model in model_configs %}
+                                {% with record_count=model.record_count|default:0 %}
+                                    {% if record_count != -1 %}
+                                        {% with total_records=total_records|add:record_count %}
+                                        {% endwith %}
+                                    {% endif %}
+                                {% endwith %}
+                            {% endfor %}
+                            {{ total_records }}
+                        {% endwith %}
+                    </div>
+                    <a href="{% url 'lowcode:model-list' %}" class="text-warning">
+                        <i class="bi bi-arrow-right" aria-hidden="true"></i> 查看详情
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- 快速操作 + 功能导航 -->
+<section aria-labelledby="actions-heading" class="mb-6">
+    <div class="row g-4">
+        <!-- 快速操作 -->
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light py-3">
+                    <h2 id="actions-heading" class="h5 mb-0 d-flex align-items-center">
+                        <i class="bi bi-rocket me-2 text-primary" aria-hidden="true"></i>快速操作
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'lowcode:model-upgrade' %}" class="btn btn-primary quick-btn" aria-label="新建动态模型">
+                            <i class="bi bi-plus-circle" aria-hidden="true"></i> 新建动态模型
+                        </a>
+                        <a href="{% url 'lowcode:model-list' %}" class="btn btn-outline-primary quick-btn" aria-label="模型管理">
+                            <i class="bi bi-table" aria-hidden="true"></i> 模型管理
+                        </a>
+                        {% if model_configs %}
+                        <a href="{% url 'lowcode:dynamic-model-list' model_name=model_configs.0.name %}"
+                           class="btn btn-outline-secondary quick-btn"
+                           aria-label="管理最新模型 {{ model_configs.0.name|escape }} 的数据">
+                            <i class="bi bi-list-check" aria-hidden="true"></i> 管理最新模型数据
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 功能导航 -->
+        <div class="col-md-8">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light py-3">
+                    <h2 class="h5 mb-0 d-flex align-items-center">
+                        <i class="bi bi-compass me-2 text-primary" aria-hidden="true"></i>功能导航
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="card feature-card h-100">
+                                <div class="card-body">
+                                    <div class="card-icon"><i class="bi bi-cube" aria-hidden="true"></i></div>
+                                    <h3 class="card-title h6">动态建模</h3>
+                                    <p class="card-text">可视化配置模型字段，自动生成数据库表</p>
+                                    <a href="{% url 'lowcode:model-upgrade' %}" class="btn btn-sm btn-outline-primary" aria-label="开始创建动态模型">开始创建</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card feature-card h-100">
+                                <div class="card-body">
+                                    <div class="card-icon"><i class="bi bi-pencil-square" aria-hidden="true"></i></div>
+                                    <h3 class="card-title h6">数据管理</h3>
+                                    <p class="card-text">对动态模型数据进行增删改查与批量操作</p>
+                                    <a href="{% url 'lowcode:model-list' %}" class="btn btn-sm btn-outline-primary" aria-label="管理动态模型数据">管理数据</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card feature-card h-100">
+                                <div class="card-body">
+                                    <div class="card-icon"><i class="bi bi-gear" aria-hidden="true"></i></div>
+                                    <h3 class="card-title h6">模型配置</h3>
+                                    <p class="card-text">编辑字段、修改表名、查看状态与统计</p>
+                                    <a href="{% url 'admin:lowcode_modellowcode_changelist' %}" class="btn btn-sm btn-outline-primary" aria-label="配置动态模型">配置模型</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 系统介绍 + 最近模型 -->
+<section class="row g-4">
+    <!-- 系统介绍 -->
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-light py-3">
+                <h2 class="h5 mb-0 d-flex align-items-center">
+                    <i class="bi bi-info-circle me-2 text-primary" aria-hidden="true"></i>系统介绍
+                </h2>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">动态模型系统是一款低代码开发平台，旨在帮助开发者快速构建数据管理系统。</p>
+                <h3 class="fw-bold text-dark mb-2">核心特性：</h3>
+                <ul class="list-unstyled mb-3">
+                    <li class="mb-1"><i class="bi bi-check-circle text-success me-2" aria-hidden="true"></i> 支持多种字段类型（字符串、数字、日期等）</li>
+                    <li class="mb-1"><i class="bi bi-check-circle text-success me-2" aria-hidden="true"></i> 自动生成数据库表，无需手动编写SQL</li>
+                    <li class="mb-1"><i class="bi bi-check-circle text-success me-2" aria-hidden="true"></i> 完整的数据管理功能（增删改查、批量操作）</li>
+                    <li class="mb-1"><i class="bi bi-check-circle text-success me-2" aria-hidden="true"></i> 模型配置实时生效，支持动态调整</li>
+                </ul>
+                <div class="alert alert-info p-2 small" role="alert">
+                    <i class="bi bi-lightbulb me-1" aria-hidden="true"></i> 提示：新增模型后，请先检查数据表状态，确保表创建成功后再添加数据。
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 最近创建的模型 -->
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-light py-3">
+                <h2 class="h5 mb-0 d-flex align-items-center">
+                    <i class="bi bi-clock-history me-2 text-primary" aria-hidden="true"></i>最近创建的模型
+                </h2>
+            </div>
+            <div class="card-body p-0">
+                {% if model_configs %}
+                <div class="list-group list-group-flush">
+                    {% for model in model_configs|slice:":5" %}
+                    <article class="list-group-item activity-item p-3" role="article">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h3 class="mb-0 text-dark fw-medium">{{ model.name|escape }}</h3>
+                                <small class="text-muted">
+                                    表名：{{ model.table_name|escape }} |
+                                    字段数：{{ model.config.fields.count|default:"-" }} |
+                                    数据：{% if model.record_count == -1 %}<span class="text-danger">统计失败</span>{% else %}{{ model.record_count }}条{% endif %}
+                                </small>
+                                <div class="mt-1">
+                                    {% if model.exists_in_db %}
+                                        <span class="badge status-badge bg-success">已创建</span>
+                                    {% else %}
+                                        <span class="badge status-badge bg-danger">未创建</span>
+                                    {% endif %}
+                                    {% if model.has_config %}
+                                        <span class="badge status-badge bg-primary">已配置</span>
+                                    {% else %}
+                                        <span class="badge status-badge bg-gray-300">未配置</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="text-nowrap ms-3">
+                                <small class="text-muted">{{ model.create_time|timesince }}前</small>
+                                <div class="mt-2">
+                                    <a href="{% url 'lowcode:dynamic-model-list' model_name=model.name %}"
+                                       class="btn btn-xs btn-outline-primary px-2 py-0"
+                                       aria-label="管理 {{ model.name|escape }} 的数据">
+                                        管理数据
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-calendar-x fs-3 mb-2" aria-hidden="true"></i>
+                    <p class="mb-2">暂无创建的模型</p>
+                    <a href="{% url 'lowcode:model-upgrade' %}" class="btn btn-sm btn-primary" aria-label="立即创建新模型">
+                        立即创建
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ======================
+    // 数字滚动动画（优化版：进入视口时触发，支持非整数）
+    // ======================
+    const animateCounters = () => {
+        const counters = document.querySelectorAll('.count-animate');
+        if (!counters.length) return;
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target;
+                    el.classList.add('visible');
+
+                    const originalText = el.textContent.trim();
+                    const num = parseFloat(originalText.replace(/,/g, ''));
+                    if (isNaN(num)) {
+                        observer.unobserve(el);
+                        return;
+                    }
+
+                    const isInt = Number.isInteger(num);
+                    const target = isInt ? Math.round(num) : parseFloat(num.toFixed(1));
+                    let current = 0;
+                    const duration = 1200;
+                    const frameRate = 1000 / 60; // ~60fps
+                    const totalFrames = duration / frameRate;
+                    const increment = target / totalFrames;
+
+                    const update = () => {
+                        current += increment;
+                        if (current < target) {
+                            el.textContent = isInt
+                                ? Math.ceil(current).toLocaleString()
+                                : current.toFixed(1);
+                            requestAnimationFrame(update);
+                        } else {
+                            el.textContent = isInt
+                                ? target.toLocaleString()
+                                : target.toFixed(1);
+                        }
+                    };
+                    update();
+                    observer.unobserve(el);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        counters.forEach(el => observer.observe(el));
+    };
+
+    // ======================
+    // 功能卡片按钮交互（优化hover效果）
+    // ======================
+    document.querySelectorAll('.feature-card').forEach(card => {
+        const btn = card.querySelector('.btn');
+        if (!btn) return;
+
+        const onMouseEnter = () => {
+            btn.classList.replace('btn-outline-primary', 'btn-primary');
+        };
+        const onMouseLeave = () => {
+            btn.classList.replace('btn-primary', 'btn-outline-primary');
+        };
+
+        card.addEventListener('mouseenter', onMouseEnter);
+        card.addEventListener('mouseleave', onMouseLeave);
+    });
+
+    // ======================
+    // 快速操作按钮微动效（优化过渡）
+    // ======================
+    document.querySelectorAll('.quick-btn').forEach(btn => {
+        btn.addEventListener('mouseenter', () => {
+            btn.style.transform = 'translateY(-2px)';
+            btn.style.boxShadow = '0 4px 8px rgba(13, 110, 253, 0.15)';
+        });
+        btn.addEventListener('mouseleave', () => {
+            btn.style.transform = 'translateY(0)';
+            btn.style.boxShadow = 'none';
+        });
+    });
+
+    // ======================
+    // 卡片hover增强效果
+    // ======================
+    document.querySelectorAll('.overview-card, .feature-card').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.zIndex = '10';
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.zIndex = '1';
+        });
+    });
+
+    // ======================
+    // 初始化动画和交互
+    // ======================
+    animateCounters();
+
+    // 页面加载完成后的淡入效果
+    document.querySelectorAll('.card').forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(10px)';
+        card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+
+        setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100 * index);
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+{% load static %}
+{% load custom_filters %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="动态模型系统 - 基于Django的低代码平台">
+    <meta name="keywords" content="动态模型,低代码,Django,Bootstrap">
+    <title>{% block title %}动态模型系统{% endblock %}</title>
+
+    <!-- 本地资源引用 -->
+    <!-- Bootstrap 5 CSS -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <!-- Bootstrap Icons CSS -->
+    <link href="{% static 'css/bootstrap-icons.css' %}" rel="stylesheet">
+    <!-- jQuery 本地引用（如需使用） -->
+    <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
+
+    <!-- 自定义公共样式（优化版） -->
+    <style>
+        /* 全局重置与基础样式 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", "微软雅黑", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #343a40;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* 导航栏优化 */
+        .navbar {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: background-color 0.3s ease;
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            color: #0d6efd !important;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .navbar-brand i {
+            font-size: 1.5rem;
+        }
+
+        .nav-link {
+            color: #495057 !important;
+            padding: 0.75rem 1rem !important;
+            margin: 0 0.25rem;
+            border-radius: 0.375rem;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover,
+        .nav-link:focus {
+            color: #0d6efd !important;
+            background-color: rgba(13, 110, 253, 0.05);
+            outline: none;
+        }
+
+        .nav-link.active {
+            color: #0d6efd !important;
+            font-weight: 500;
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+
+        /* 内容容器优化 */
+        .main-content {
+            flex: 1;
+            padding: 1.5rem 0;
+        }
+
+        /* 卡片样式增强 */
+        .card {
+            border: 1px solid #e9ecef;
+            border-radius: 0.75rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.07);
+        }
+
+        /* 页脚样式优化 */
+        .footer {
+            background-color: #fff;
+            border-top: 1px solid #e9ecef;
+            padding: 1.25rem 0;
+            margin-top: auto;
+            font-size: 0.9rem;
+        }
+
+        /* 按钮样式增强 */
+        .btn {
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
+
+        /* 表单样式优化 */
+        .form-control {
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-control:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+            outline: none;
+        }
+
+        /* 提示框样式 */
+        .alert {
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* 工具类完善 */
+        .truncate-text {
+            display: inline-block;
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .status-badge {
+            padding: 0.25em 0.5em;
+            border-radius: 0.25rem;
+            font-size: 0.875em;
+            font-weight: 500;
+        }
+
+        .badge-default {
+            background-color: #e9ecef;
+            color: #6c757d;
+        }
+
+        .badge-success {
+            background-color: #198754;
+        }
+
+        .badge-danger {
+            background-color: #dc3545;
+        }
+
+        .badge-warning {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .badge-info {
+            background-color: #0dcaf0;
+        }
+
+        .img-thumbnail-small {
+            max-height: 40px;
+            max-width: 60px;
+            object-fit: cover;
+            border-radius: 0.25rem;
+        }
+
+        .file-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            text-decoration: none;
+            color: #0d6efd;
+        }
+
+        .file-link:hover {
+            color: #0b5ed7;
+            text-decoration: underline;
+        }
+
+        /* 加载状态 */
+        .loading-spinner {
+            display: inline-block;
+            width: 1.5rem;
+            height: 1.5rem;
+            border: 3px solid rgba(13, 110, 253, 0.3);
+            border-radius: 50%;
+            border-top-color: #0d6efd;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 响应式优化 */
+        @media (max-width: 991px) {
+            .navbar-nav {
+                gap: 0.5rem;
+            }
+
+            .nav-link {
+                padding: 0.5rem 1rem !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar-collapse {
+                background-color: #fff;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                padding: 1rem;
+                border-radius: 0.75rem;
+                margin-top: 0.75rem;
+                border: 1px solid #e9ecef;
+            }
+
+            .main-content {
+                padding: 1rem 0;
+            }
+
+            .btn-group-sm .btn {
+                margin: 0.25rem 0;
+                width: 100%;
+            }
+
+            .truncate-text {
+                max-width: 200px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .navbar-brand span {
+                font-size: 1.1rem;
+            }
+
+            .footer {
+                padding: 1rem 0;
+                font-size: 0.85rem;
+            }
+
+            .truncate-text {
+                max-width: 150px;
+            }
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <!-- 页眉导航（优化激活逻辑） -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top" aria-label="主导航">
+            <div class="container-fluid px-3 px-md-4">
+                <!-- 品牌标识 -->
+                <a class="navbar-brand" href="{% url 'lowcode:dashboard' %}" aria-label="返回首页">
+                    <i class="bi bi-diagram-3" aria-hidden="true"></i>
+                    <span>动态模型系统</span>
+                </a>
+
+                <!-- 移动端菜单按钮 -->
+                <button class="navbar-toggler" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                        aria-controls="navbarNav" aria-expanded="false"
+                        aria-label="切换导航菜单">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- 导航菜单 -->
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <!-- 首页 -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+                               href="{% url 'lowcode:dashboard' %}">
+                                <i class="bi bi-house me-1" aria-hidden="true"></i> 首页
+                            </a>
+                        </li>
+                        <!-- 模型管理 -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'model-list' or 'dynamic-model-' in request.resolver_match.url_name %}active{% endif %}"
+                               href="{% url 'lowcode:model-list' %}">
+                                <i class="bi bi-table me-1" aria-hidden="true"></i> 模型管理
+                            </a>
+                        </li>
+                        <!-- 模型配置 -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if '/admin/lowcode/modellowcode/' in request.path %}active{% endif %}"
+                               href="{% url 'admin:lowcode_modellowcode_changelist' %}">
+                                <i class="bi bi-gear me-1" aria-hidden="true"></i> 模型配置
+                            </a>
+                        </li>
+                        <!-- 系统工具（新增） -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'model-upgrade' %}active{% endif %}"
+                               href="{% url 'lowcode:model-upgrade' %}">
+                                <i class="bi bi-tools me-1" aria-hidden="true"></i> 系统工具
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!-- 用户菜单 -->
+                    <ul class="navbar-nav">
+                        {% if user.is_authenticated %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center gap-1"
+                                   href="#" id="userDropdown"
+                                   role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                   aria-label="用户 {{ user.username }} 菜单">
+                                    <i class="bi bi-person-circle" aria-hidden="true"></i>
+                                    <span class="d-none d-md-inline">{{ user.username }}</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userDropdown">
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center gap-1" href="{% url 'admin:index' %}">
+                                            <i class="bi bi-gear" aria-hidden="true"></i> 管理员后台
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center gap-1" href="{% url 'lowcode:prometheus-metrics' %}" target="_blank">
+                                            <i class="bi bi-bar-chart" aria-hidden="true"></i> 系统监控
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center gap-1 text-danger" href="{% url 'admin:logout' %}">
+                                            <i class="bi bi-box-arrow-right" aria-hidden="true"></i> 退出登录
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link btn btn-outline-primary btn-sm" href="{% url 'admin:login' %}">
+                                    <i class="bi bi-box-arrow-in-right me-1" aria-hidden="true"></i> 登录
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- 主内容区（优化间距和容器） -->
+    <main class="main-content">
+        <div class="container-fluid px-3 px-md-4">
+            <!-- 消息提示（全局复用） -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show d-flex align-items-center" role="alert">
+                    <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill{% elif message.tags == 'error' %}bi-exclamation-circle-fill{% elif message.tags == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %} me-2" aria-hidden="true"></i>
+                    <span>{{ message }}</span>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="关闭提示"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- 页面标题（可覆盖） -->
+            {% block page_title %}{% endblock %}
+
+            <!-- 页面内容 -->
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- 页脚（优化版权信息） -->
+    <footer class="footer text-center text-muted">
+        <div class="container px-3">
+            <p class="mb-0">
+                &copy; {% now "Y" %} 动态模型系统 | 基于 Django {{ django_version }} + Bootstrap 5 开发 |
+                <a href="#" class="text-decoration-none text-muted" data-bs-toggle="modal" data-bs-target="#aboutModal">关于系统</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- 关于系统模态框（新增） -->
+    <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="aboutModalLabel">关于动态模型系统</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-center mb-3">
+                        <i class="bi bi-diagram-3 fs-3 text-primary" aria-hidden="true"></i>
+                    </p>
+                    <ul class="list-unstyled small">
+                        <li class="mb-1"><strong>系统版本：</strong> v1.0.0</li>
+                        <li class="mb-1"><strong>技术栈：</strong> Django + Bootstrap 5</li>
+                        <li class="mb-1"><strong>功能：</strong> 动态模型管理、数据CRUD、权限控制</li>
+                        <li class="mb-1"><strong>安全：</strong> 基于Django权限系统</li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 本地JavaScript资源 -->
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+
+    <!-- 公共JavaScript（全局复用） -->
+    <script>
+        // 导航菜单激活状态保持（页面加载时）
+        document.addEventListener('DOMContentLoaded', function() {
+            // 处理导航栏滚动效果
+            const navbar = document.querySelector('.navbar');
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 10) {
+                    navbar.classList.add('shadow-md');
+                    navbar.classList.remove('shadow-sm');
+                } else {
+                    navbar.classList.remove('shadow-md');
+                    navbar.classList.add('shadow-sm');
+                }
+            });
+
+            // 初始化工具提示（如需使用）
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+            // 平滑滚动
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    if (targetId !== '#') {
+                        const targetElement = document.querySelector(targetId);
+                        if (targetElement) {
+                            targetElement.scrollIntoView({
+                                behavior: 'smooth'
+                            });
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

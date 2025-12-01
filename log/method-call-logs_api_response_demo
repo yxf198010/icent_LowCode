@@ -1,0 +1,20 @@
+{
+    "count": 120,  // 总日志数
+    "next": "http://xxx/api/method-call-logs/?page=2&page_size=10",  // 下一页URL
+    "previous": null,  // 上一页URL（第一页为空）
+    "results": [
+        {
+            "id": 120,
+            "username": "admin",
+            "model_name": "DynamicOrder",
+            "method_name": "calculate_total",
+            "params": '{"args":[],"kwargs":{}}',
+            "result_status": "success",
+            "result_data": "199.0",
+            "exception_msg": null,
+            "call_time": "2024-05-21 15:30:22",
+            "time_cost": 0.001234
+        },
+        // ... 其他日志条目
+    ]
+}
