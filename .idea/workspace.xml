@@ -4,17 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6d04ab10-c5f0-4d0c-a31a-e891562065db" name="更改" comment="修改首页链接">
-      <change afterPath="$PROJECT_DIR$/LowCode/templates/admin/login.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LowCode/templates/registration/password_reset_complete.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LowCode/templates/registration/password_reset_confirm.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LowCode/templates/registration/password_reset_done.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/LowCode/templates/registration/password_reset_form.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Icent_LowCode/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/Icent_LowCode/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Icent_LowCode/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/Icent_LowCode/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lowcode/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/lowcode/templates/base.html" afterDir="false" />
-    </list>
+    <list default="true" id="6d04ab10-c5f0-4d0c-a31a-e891562065db" name="更改" comment="增加网站LOGO" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -122,7 +112,7 @@
       <workItem from="1762776272064" duration="146748000" />
       <workItem from="1763466689081" duration="62862000" />
       <workItem from="1763905089797" duration="32033000" />
-      <workItem from="1764087384305" duration="79738000" />
+      <workItem from="1764087384305" duration="80020000" />
     </task>
     <task id="LOCAL-00001" summary="初始版本">
       <option name="closed" value="true" />
@@ -172,7 +162,23 @@
       <option name="project" value="LOCAL" />
       <updated>1764680747860</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="增加网站LOGO">
+      <option name="closed" value="true" />
+      <created>1764683265707</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1764683265707</updated>
+    </task>
+    <task id="LOCAL-00008" summary="增加网站LOGO">
+      <option name="closed" value="true" />
+      <created>1764683289128</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1764683289128</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -195,7 +201,8 @@
     <MESSAGE value="代码，页面第一次调通后提交" />
     <MESSAGE value="代码，页面第二次全部文件提交" />
     <MESSAGE value="修改首页链接" />
-    <option name="LAST_COMMIT_MESSAGE" value="修改首页链接" />
+    <MESSAGE value="增加网站LOGO" />
+    <option name="LAST_COMMIT_MESSAGE" value="增加网站LOGO" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
