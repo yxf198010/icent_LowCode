@@ -11,7 +11,7 @@ class LowCodeHealthCheck(BaseHealthCheckBackend):
             if not DYNAMIC_MODELS:
                 self.add_error(Exception("无动态模型注册"))
         except Exception as e:
-            self.add_error(e, "动态模型系统异常")
+            self.add_error(e, "动态模型-系统异常")
 
 
 plugin_dir.register(LowCodeHealthCheck)

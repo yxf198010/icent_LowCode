@@ -250,7 +250,7 @@ if not hasattr(views, 'APIRootView'):
     from rest_framework.views import APIView
 
     class APIRootView(APIView):
-        """动态模型系统API接口根文档（v1）"""
+        """Icent低代码平台API接口根文档（v1）"""
         permission_classes = [IsAuthenticated]
         description = "提供动态模型配置、数据管理、权限控制、日志导出等核心功能"
 
@@ -258,7 +258,7 @@ if not hasattr(views, 'APIRootView'):
             # 动态构建绝对URL，适配不同部署环境
             base_url = request.build_absolute_uri('/api/v1/')
             return Response({
-                "message": "动态模型系统API接口文档",
+                "message": "Icent低代码平台API接口文档",
                 "version": "1.0.0",
                 "description": self.description,
                 "core-endpoints": {

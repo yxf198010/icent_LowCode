@@ -1,0 +1,1219 @@
+<!-- templates/lowcode/dynamic_model_list.html -->
+{% extends "base.html" %}
+{% load static custom_filters %}
+
+{% block title %}{{ title }} - Icent低代码平台{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 基础全局样式 */
+    body {
+        background-color: #f8f9fa;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* 卡片与容器样式优化 */
+    .main-card {
+        border-radius: 0.75rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+        transition: box-shadow 0.3s ease, transform 0.2s ease;
+        border: none;
+        background-color: #ffffff;
+    }
+
+    .main-card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+    }
+
+    /* 页面头部样式 */
+    .page-header {
+        display: flex;
+        flex-direction: column;
+        flex-md-row;
+        justify-content: space-between;
+        align-items: flex-start;
+        align-items-md: center;
+        margin-bottom: 1.75rem;
+        gap: 1rem;
+    }
+
+    .page-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1a202c;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .page-title i {
+        color: #3b82f6;
+        font-size: 1.5rem;
+    }
+
+    .data-count-badge {
+        background-color: #3b82f6 !important;
+        font-weight: 500;
+        padding: 0.25rem 0.6rem;
+        font-size: 0.875rem;
+    }
+
+    /* 表格样式优化 */
+    .table {
+        margin-bottom: 0;
+        color: #2d3748;
+    }
+
+    .table-selected {
+        background-color: #e0f2fe !important;
+        transition: background-color 0.2s ease;
+    }
+
+    .table-hover tbody tr:hover td {
+        background-color: #f0f9ff !important;
+        transition: background-color 0.2s ease;
+    }
+
+    .table thead th {
+        font-weight: 600;
+        color: #4a5568;
+        padding: 0.875rem 1rem;
+        background-color: #f8fafc;
+        border-bottom: 2px solid #e2e8f0;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .table td {
+        vertical-align: middle;
+        padding: 0.875rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .table-responsive {
+        border-radius: 0.75rem;
+        overflow: hidden;
+    }
+
+    /* 操作按钮组优化 */
+    .action-btn-group {
+        display: flex;
+        justify-content: center;
+        gap: 0.375rem;
+    }
+
+    .action-btn {
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+        border-radius: 0.375rem;
+        transition: all 0.2s ease;
+    }
+
+    .action-btn i {
+        margin: 0;
+        font-size: 0.9375rem;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #3b82f6;
+        color: #ffffff;
+    }
+
+    .btn-outline-warning:hover {
+        background-color: #f59e0b;
+        color: #ffffff;
+    }
+
+    .btn-outline-danger:hover {
+        background-color: #dc2626;
+        color: #ffffff;
+    }
+
+    /* 布尔值标签优化 */
+    .boolean-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 0.375rem;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    .boolean-tag.tag-active {
+        background-color: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+
+    .boolean-tag.tag-inactive {
+        background-color: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+
+    .boolean-tag i {
+        font-size: 0.75rem;
+    }
+
+    /* 文件链接优化 */
+    .file-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        color: #3b82f6;
+        text-decoration: none;
+        font-size: 0.875rem;
+        padding: 0.2rem 0.3rem;
+        border-radius: 0.25rem;
+        transition: all 0.2s ease;
+    }
+
+    .file-link:hover {
+        text-decoration: none;
+        color: #2563eb;
+        background-color: #eff6ff;
+    }
+
+    /* 长文本截断优化 */
+    .truncate-text {
+        display: inline-block;
+        max-width: 180px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: help;
+        font-size: 0.875rem;
+        position: relative;
+    }
+
+    /* 自定义提示框（替代浏览器默认提示） */
+    .truncate-text:hover::after {
+        content: attr(title);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #1e293b;
+        color: #ffffff;
+        padding: 0.4rem 0.6rem;
+        border-radius: 0.375rem;
+        font-size: 0.75rem;
+        white-space: pre-wrap;
+        max-width: 300px;
+        width: max-content;
+        z-index: 100;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        pointer-events: none;
+    }
+
+    /* 空状态优化 */
+    .empty-state {
+        padding: 4rem 1rem;
+        text-align: center;
+        color: #64748b;
+        background-color: #f8fafc;
+        border-radius: 0.75rem;
+        margin: 1rem;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1.25rem;
+        opacity: 0.4;
+        color: #94a3b8;
+    }
+
+    .empty-state p {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+
+    .empty-state .btn {
+        padding: 0.5625rem 1.125rem;
+        font-size: 0.9375rem;
+    }
+
+    /* 图片缩略图优化 */
+    .img-thumbnail-small {
+        width: 44px;
+        height: 44px;
+        object-fit: cover;
+        border-radius: 0.375rem;
+        border: 1px solid #e2e8f0;
+        cursor: zoom-in;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background-color: #f8fafc;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .img-thumbnail-small:hover {
+        transform: scale(1.3);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        z-index: 10;
+        position: relative;
+    }
+
+    /* 分页样式优化 */
+    .pagination-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        background-color: #f8fafc;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .pagination-sm .page-link {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        border-radius: 0.375rem;
+        margin: 0 0.125rem;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+        font-weight: 500;
+    }
+
+    .pagination .page-item .page-link {
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s ease;
+    }
+
+    .pagination .page-item .page-link:hover {
+        color: #3b82f6;
+        border-color: #93c5fd;
+        background-color: #f0f9ff;
+    }
+
+    .pagination-info {
+        color: #64748b;
+        font-size: 0.875rem;
+        margin-bottom: 0;
+    }
+
+    /* 搜索框优化 */
+    .search-card {
+        background-color: #ffffff;
+        border-radius: 0.75rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .search-input-group {
+        position: relative;
+    }
+
+    .search-input-group .form-control {
+        padding: 0.625rem 1rem;
+        font-size: 0.9375rem;
+        border-radius: 0.5rem;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s ease;
+    }
+
+    .search-input-group .form-control:focus {
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 0.25rem rgba(96, 165, 250, 0.2);
+        outline: none;
+    }
+
+    .search-input-group .btn {
+        padding: 0.625rem 1rem;
+        font-size: 0.9375rem;
+        border-radius: 0.5rem;
+        margin-left: 0.5rem;
+    }
+
+    .search-input-group .btn-outline-secondary {
+        border-color: #e2e8f0;
+        color: #475569;
+    }
+
+    .search-input-group .btn-outline-secondary:hover {
+        background-color: #f1f5f9;
+        border-color: #94a3b8;
+    }
+
+    /* 模态框样式优化 */
+    .modal-header {
+        border-bottom: 1px solid #f1f5f9;
+        padding: 1rem 1.25rem;
+    }
+
+    .modal-title {
+        font-size: 1.0625rem;
+        font-weight: 600;
+        color: #1a202c;
+    }
+
+    .modal-body {
+        padding: 1.25rem;
+    }
+
+    .modal-footer {
+        border-top: 1px solid #f1f5f9;
+        padding: 1rem 1.25rem;
+        gap: 0.75rem;
+    }
+
+    .modal-sm .modal-content {
+        border-radius: 0.75rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    }
+
+    /* 图片预览模态框优化 */
+    #imagePreviewModal .modal-content {
+        background-color: rgba(0, 0, 0, 0.95);
+        border-radius: 0.75rem;
+        overflow: hidden;
+    }
+
+    #imagePreviewModal .modal-body {
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 300px;
+    }
+
+    #previewImage {
+        max-width: 100%;
+        max-height: 80vh;
+        object-fit: contain;
+    }
+
+    /* 响应式调整 - 精细化适配 */
+    @media (max-width: 1200px) {
+        .truncate-text {
+            max-width: 150px;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .truncate-text {
+            max-width: 120px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .page-header {
+            align-items: flex-start;
+        }
+
+        .page-title {
+            font-size: 1.125rem;
+        }
+
+        .truncate-text {
+            max-width: 90px;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            font-size: 0.8125rem;
+        }
+
+        .card-body {
+            padding: 1rem !important;
+        }
+
+        .table-responsive {
+            font-size: 0.875rem;
+        }
+
+        .table thead th,
+        .table td {
+            padding: 0.75rem 0.5rem;
+        }
+
+        .empty-state {
+            padding: 3rem 1rem;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+        }
+
+        .search-card {
+            padding: 1rem;
+        }
+
+        .search-input-group {
+            flex-direction: column;
+        }
+
+        .search-input-group .btn {
+            width: 100%;
+            margin-left: 0;
+            margin-top: 0.5rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .truncate-text {
+            max-width: 70px;
+        }
+
+        .action-btn-group {
+            gap: 0.25rem;
+        }
+
+        .action-btn {
+            width: 30px;
+            height: 30px;
+            font-size: 0.75rem;
+        }
+
+        .boolean-tag {
+            padding: 0.2rem 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .pagination-container {
+            gap: 0.75rem;
+            padding: 0.75rem;
+        }
+
+        .pagination-info {
+            order: 3;
+            width: 100%;
+            text-align: center;
+        }
+
+        .empty-state p {
+            font-size: 0.9375rem;
+        }
+
+        .data-count-badge {
+            font-size: 0.8125rem;
+            padding: 0.2rem 0.5rem;
+        }
+    }
+
+    /* 加载状态动画 */
+    .spinner-sm {
+        width: 1rem;
+        height: 1rem;
+        border-width: 0.15rem;
+    }
+
+    /* 自定义提示框样式 */
+    .custom-toast {
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        z-index: 9999;
+        max-width: 300px;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        transition: all 0.3s ease;
+        transform: translateY(-100px);
+        opacity: 0;
+    }
+
+    .custom-toast.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    .toast-header {
+        padding: 0.5rem 1rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        background-color: rgba(255, 255, 255, 0.95);
+    }
+
+    .toast-body {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+
+    .toast-success .toast-header {
+        border-bottom-color: #dcfce7;
+    }
+
+    .toast-success .toast-body {
+        background-color: #f0fdf4;
+        color: #166534;
+    }
+
+    .toast-error .toast-header {
+        border-bottom-color: #fee2e2;
+    }
+
+    .toast-error .toast-body {
+        background-color: #fef2f2;
+        color: #991b1b;
+    }
+
+    .toast-warning .toast-header {
+        border-bottom-color: #fef3c7;
+    }
+
+    .toast-warning .toast-body {
+        background-color: #fffbeb;
+        color: #92400e;
+    }
+
+    /* 复选框样式优化 */
+    .form-check-input {
+        width: 1.125rem;
+        height: 1.125rem;
+        border-radius: 0.375rem;
+        border: 1px solid #cbd5e1;
+        transition: all 0.2s ease;
+    }
+
+    .form-check-input:checked {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+    }
+
+    .form-check-input:focus {
+        box-shadow: 0 0 0 0.25rem rgba(96, 165, 250, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- 页面头部 -->
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-table"></i>{{ title }}
+            <span class="badge bg-primary data-count-badge ms-2">{{ total_data }} 条</span>
+        </h1>
+        <a href="{% url 'lowcode:dynamic_model_add' model_name=model_name %}" class="btn btn-success d-inline-flex align-items-center gap-1">
+            <i class="bi bi-plus-circle"></i> 添加数据
+        </a>
+    </div>
+
+    <!-- 搜索与批量操作 -->
+    <div class="search-card">
+        <form method="get" class="row g-3 align-items-center">
+            <div class="col-12 col-md-9">
+                <div class="input-group search-input-group">
+                    <input type="text"
+                           name="search"
+                           class="form-control"
+                           placeholder="搜索所有字段..."
+                           value="{{ search_keyword|default:'' }}"
+                           aria-label="搜索关键词"
+                           autocomplete="off">
+                    <button class="btn btn-primary" type="submit" aria-label="执行搜索">
+                        <i class="bi bi-search"></i> 搜索
+                    </button>
+                    {% if search_keyword %}
+                    <a href="{% url 'lowcode:dynamic_model_list' model_name=model_name %}"
+                       class="btn btn-outline-secondary"
+                       aria-label="清除搜索条件">
+                        <i class="bi bi-x-lg"></i> 清除
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-12 col-md-3">
+                <button type="button"
+                        class="btn btn-danger w-100 d-flex align-items-center justify-content-center gap-1"
+                        id="batchDeleteBtn"
+                        {% if not queryset %}disabled{% endif %}
+                        aria-label="批量删除选中项">
+                    <i class="bi bi-trash3"></i> 批量删除
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 数据表格 -->
+    <div class="card main-card">
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 50px;" class="text-center">
+                            <input type="checkbox"
+                                   id="selectAll"
+                                   class="form-check-input"
+                                   {% if not queryset %}disabled{% endif %}
+                                   aria-label="全选">
+                        </th>
+                        {% for field in model_fields %}
+                        <th class="text-center">{{ field.verbose_name }}</th>
+                        {% endfor %}
+                        <th style="width: 120px;" class="text-center">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if queryset %}
+                        {% for obj in queryset %}
+                        <tr class="align-middle">
+                            <td class="text-center">
+                                <input type="checkbox"
+                                       class="selectItem form-check-input"
+                                       value="{{ obj.id }}"
+                                       aria-label="选择 {{ obj }}">
+                            </td>
+                            {% for field in model_fields %}
+                            <td>
+                                {% with field_info=obj|get_field_display_info:field.name %}
+                                    {% if field_info.is_boolean %}
+                                        <span class="boolean-tag {{ field_info.css_class }}">
+                                            <i class="bi {% if field_info.value %}bi-check{% else %}bi-x{% endif %}"></i>
+                                            {{ field_info.display_value }}
+                                        </span>
+                                    {% elif field_info.is_image %}
+                                        {% if field_info.url %}
+                                        <img src="{{ field_info.url }}"
+                                             alt="{{ field.verbose_name }}预览"
+                                             class="img-thumbnail-small"
+                                             data-img-url="{{ field_info.url }}"
+                                             data-bs-toggle="modal"
+                                             data-bs-target="#imagePreviewModal">
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    {% elif field_info.is_file %}
+                                        {% if field_info.url %}
+                                        <a href="{{ field_info.url }}"
+                                           target="_blank"
+                                           class="file-link"
+                                           title="下载：{{ field_info.filename }}">
+                                            <i class="bi bi-file-earmark"></i>
+                                            <span class="d-none d-md-inline">{{ field_info.filename|truncatechars:12 }}</span>
+                                            <span class="d-md-none">下载</span>
+                                        </a>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    {% elif field_info.is_date or field_info.is_datetime %}
+                                        <span class="date-value" title="{{ field_info.display_value }}">{{ field_info.display_value }}</span>
+                                    {% elif field_info.is_long_text and field_info.display_value|length > 25 %}
+                                        <span class="truncate-text" title="{{ field_info.display_value|linebreaksbr|safe }}">
+                                            {{ field_info.display_value|truncatechars:25 }}
+                                        </span>
+                                    {% elif field_info.is_empty %}
+                                        <span class="text-muted">-</span>
+                                    {% else %}
+                                        {{ field_info.display_value|default:"-"|linebreaksbr|safe }}
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                            {% endfor %}
+                            <td class="text-center">
+                                <div class="action-btn-group btn-group" role="group">
+                                    <a href="{% url 'lowcode:dynamic_model_detail' model_name=model_name pk=obj.id %}"
+                                       class="btn btn-outline-primary action-btn"
+                                       title="查看"
+                                       data-bs-toggle="tooltip"
+                                       data-bs-placement="top">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'lowcode:dynamic_model_edit' model_name=model_name pk=obj.id %}"
+                                       class="btn btn-outline-warning action-btn"
+                                       title="编辑"
+                                       data-bs-toggle="tooltip"
+                                       data-bs-placement="top">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button class="btn btn-outline-danger action-btn deleteBtn"
+                                            data-id="{{ obj.id }}"
+                                            data-name="{{ obj|escapejs }}"
+                                            title="删除"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="{{ model_fields|length|add:2 }}" class="text-center p-0">
+                                <div class="empty-state">
+                                    <i class="bi bi-inbox"></i>
+                                    <p class="mb-2">
+                                        {% if search_keyword %}
+                                            未找到匹配 “<strong>{{ search_keyword }}</strong>” 的数据
+                                        {% else %}
+                                            暂无数据
+                                        {% endif %}
+                                    </p>
+                                    {% if search_keyword %}
+                                    <a href="{% url 'lowcode:dynamic_model_list' model_name=model_name %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-arrow-counterclockwise me-1"></i> 清除搜索
+                                    </a>
+                                    {% else %}
+                                    <a href="{% url 'lowcode:dynamic_model_add' model_name=model_name %}" class="btn btn-sm btn-success">
+                                        <i class="bi bi-plus-circle me-1"></i> 新增数据
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 分页 -->
+        {% if queryset.paginator.num_pages > 1 %}
+        <div class="pagination-container">
+            <nav aria-label="分页导航">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item {% if not queryset.has_previous %}disabled{% endif %}">
+                        <a class="page-link" href="?page=1{% if search_keyword %}&search={{ search_keyword|urlencode }}{% endif %}" aria-label="首页">
+                            <i class="bi bi-chevron-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item {% if not queryset.has_previous %}disabled{% endif %}">
+                        <a class="page-link" href="{% if queryset.has_previous %}?page={{ queryset.previous_page_number }}{% if search_keyword %}&search={{ search_keyword|urlencode }}{% endif %}{% else %}#{% endif %}" aria-label="上一页">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+
+                    {% for page_num in queryset.paginator.page_range %}
+                        {% if page_num >= queryset.number|add:"-2" and page_num <= queryset.number|add:"2" %}
+                        <li class="page-item {% if page_num == queryset.number %}active{% endif %}">
+                            <a class="page-link" href="?page={{ page_num }}{% if search_keyword %}&search={{ search_keyword|urlencode }}{% endif %}">{{ page_num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    <li class="page-item {% if not queryset.has_next %}disabled{% endif %}">
+                        <a class="page-link" href="{% if queryset.has_next %}?page={{ queryset.next_page_number }}{% if search_keyword %}&search={{ search_keyword|urlencode }}{% endif %}{% else %}#{% endif %}" aria-label="下一页">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item {% if not queryset.has_next %}disabled{% endif %}">
+                        <a class="page-link" href="?page={{ queryset.paginator.num_pages }}{% if search_keyword %}&search={{ search_keyword|urlencode }}{% endif %}" aria-label="末页">
+                            <i class="bi bi-chevron-double-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <p class="pagination-info">
+                第 {{ queryset.number }}/{{ queryset.paginator.num_pages }} 页，共 {{ total_data }} 条数据
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 删除模态框（单个） -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="bi bi-exclamation-triangle text-warning me-1"></i>确认删除
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-danger mb-0">确定要删除 <span id="deleteObjName" class="fw-bold"></span> 吗？</p>
+                <p class="text-muted mb-0 mt-2 small">此操作不可撤销，删除后数据将永久丢失！</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">确认删除</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 批量删除模态框 -->
+<div class="modal fade" id="batchDeleteModal" tabindex="-1" aria-labelledby="batchDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="batchDeleteModalLabel">
+                    <i class="bi bi-exclamation-triangle text-warning me-1"></i>批量删除确认
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-danger mb-0">确定要删除选中的 <span id="selectedCount" class="fw-bold">0</span> 条数据吗？</p>
+                <p class="text-muted mb-0 mt-2 small">此操作不可撤销，删除后数据将永久丢失！</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger" id="confirmBatchDelete">确认删除</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 图片预览模态框 -->
+<div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-labelledby="imagePreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-fullscreen-sm-down">
+        <div class="modal-content bg-transparent border-0">
+            <div class="modal-header border-0 justify-content-end p-3">
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="关闭" style="font-size: 1.25rem;"></button>
+            </div>
+            <div class="modal-body d-flex justify-content-center align-items-center p-2">
+                <img id="previewImage" src="" class="img-fluid rounded" alt="图片预览">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 自定义提示框容器 -->
+<div id="toastContainer"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const modelName = "{{ model_name }}";
+    const csrfToken = "{{ csrf_token }}";
+    let deleteId = null;
+
+    // 初始化Bootstrap工具提示
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    if (tooltipTriggerList.length > 0) {
+        new bootstrap.Tooltip(tooltipTriggerList);
+    }
+
+    // === 全选逻辑优化 ===
+    const selectAll = document.getElementById('selectAll');
+    const selectItems = document.querySelectorAll('.selectItem');
+    const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+    const selectedCountEl = document.getElementById('selectedCount');
+
+    // 全选切换
+    if (selectAll) {
+        selectAll.addEventListener('change', () => {
+            const isChecked = selectAll.checked;
+            selectItems.forEach(item => {
+                item.checked = isChecked;
+                toggleRowSelection(item);
+            });
+            updateBatchDeleteButton();
+            updateSelectedCount();
+        });
+    }
+
+    // 单个选择切换
+    selectItems.forEach(item => {
+        item.addEventListener('change', () => {
+            const allChecked = Array.from(selectItems).every(i => i.checked);
+            if (selectAll) selectAll.checked = allChecked;
+            toggleRowSelection(item);
+            updateBatchDeleteButton();
+            updateSelectedCount();
+        });
+    });
+
+    // 切换行选中状态
+    function toggleRowSelection(checkbox) {
+        const row = checkbox.closest('tr');
+        if (row) {
+            row.classList.toggle('table-selected', checkbox.checked);
+            // 添加选中动画
+            row.style.transition = 'background-color 0.2s ease';
+        }
+    }
+
+    // 更新批量删除按钮状态
+    function updateBatchDeleteButton() {
+        if (batchDeleteBtn) {
+            const hasSelected = Array.from(selectItems).some(i => i.checked);
+            batchDeleteBtn.disabled = !hasSelected;
+            // 添加按钮状态动画
+            batchDeleteBtn.style.opacity = hasSelected ? '1' : '0.6';
+            batchDeleteBtn.style.cursor = hasSelected ? 'pointer' : 'not-allowed';
+        }
+    }
+
+    // 更新选中数量显示
+    function updateSelectedCount() {
+        if (selectedCountEl) {
+            const selectedCount = Array.from(selectItems).filter(i => i.checked).length;
+            selectedCountEl.textContent = selectedCount;
+        }
+    }
+
+    // === 单个删除优化 ===
+    const deleteModalEl = document.getElementById('deleteModal');
+    const deleteModal = deleteModalEl ? new bootstrap.Modal(deleteModalEl) : null;
+    const confirmDeleteBtn = document.getElementById('confirmDelete');
+    const deleteObjNameEl = document.getElementById('deleteObjName');
+
+    // 绑定删除按钮事件
+    document.querySelectorAll('.deleteBtn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            deleteId = btn.dataset.id;
+            const name = btn.dataset.name || '该记录';
+            if (deleteObjNameEl) deleteObjNameEl.textContent = name;
+            if (deleteModal) deleteModal.show();
+        });
+    });
+
+    // 确认删除事件
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', function () {
+            if (!deleteId) return;
+
+            // 按钮加载状态
+            const originalText = confirmDeleteBtn.innerHTML;
+            confirmDeleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> 删除中...';
+            confirmDeleteBtn.disabled = true;
+
+            // 发送删除请求
+            fetch(`/lowcode/model/${modelName}/delete/${deleteId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ id: deleteId })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('网络请求失败');
+                return res.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    showToast('删除成功', 'success');
+                    if (deleteModal) deleteModal.hide();
+                    // 移除删除的行（优化体验，无需刷新整个页面）
+                    const deletedRow = document.querySelector(`.selectItem[value="${deleteId}"]`).closest('tr');
+                    if (deletedRow) {
+                        deletedRow.style.opacity = '0';
+                        deletedRow.style.transform = 'translateX(20px)';
+                        deletedRow.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                        setTimeout(() => deletedRow.remove(), 300);
+                    }
+                    // 更新数据计数（如果需要）
+                    updateDataCount(-1);
+                } else {
+                    throw new Error(data.message || '删除失败');
+                }
+            })
+            .catch(err => {
+                console.error('删除失败:', err);
+                showToast(err.message || '删除失败，请重试', 'error');
+                // 恢复按钮状态
+                confirmDeleteBtn.innerHTML = originalText;
+                confirmDeleteBtn.disabled = false;
+            });
+        });
+    }
+
+    // 模态框关闭时恢复按钮状态
+    if (deleteModalEl) {
+        deleteModalEl.addEventListener('hidden.bs.modal', () => {
+            if (confirmDeleteBtn) {
+                confirmDeleteBtn.innerHTML = '确认删除';
+                confirmDeleteBtn.disabled = false;
+            }
+            deleteId = null;
+        });
+    }
+
+    // === 批量删除优化 ===
+    const batchDeleteModalEl = document.getElementById('batchDeleteModal');
+    const batchDeleteModal = batchDeleteModalEl ? new bootstrap.Modal(batchDeleteModalEl) : null;
+    const confirmBatchDeleteBtn = document.getElementById('confirmBatchDelete');
+
+    // 批量删除按钮点击事件
+    if (batchDeleteBtn) {
+        batchDeleteBtn.addEventListener('click', () => {
+            const selectedIds = getSelectedIds();
+            if (selectedIds.length === 0) {
+                showToast('请至少选择一条数据', 'warning');
+                return;
+            }
+            updateSelectedCount();
+            if (batchDeleteModal) batchDeleteModal.show();
+        });
+    }
+
+    // 确认批量删除事件
+    if (confirmBatchDeleteBtn) {
+        confirmBatchDeleteBtn.addEventListener('click', function () {
+            const selectedIds = getSelectedIds();
+            if (selectedIds.length === 0) return;
+
+            // 按钮加载状态
+            const originalText = confirmBatchDeleteBtn.innerHTML;
+            confirmBatchDeleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> 删除中...';
+            confirmBatchDeleteBtn.disabled = true;
+
+            // 发送批量删除请求
+            fetch(`/lowcode/model/${modelName}/batch-delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ ids: selectedIds })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('网络请求失败');
+                return res.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    showToast(`成功删除 ${selectedIds.length} 条数据`, 'success');
+                    if (batchDeleteModal) batchDeleteModal.hide();
+                    // 移除选中的行
+                    selectedIds.forEach(id => {
+                        const row = document.querySelector(`.selectItem[value="${id}"]`).closest('tr');
+                        if (row) {
+                            row.style.opacity = '0';
+                            row.style.transform = 'translateX(20px)';
+                            row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                            setTimeout(() => row.remove(), 300);
+                        }
+                    });
+                    // 更新数据计数
+                    updateDataCount(-selectedIds.length);
+                    // 取消全选
+                    if (selectAll) selectAll.checked = false;
+                    updateBatchDeleteButton();
+                } else {
+                    throw new Error(data.message || '批量删除失败');
+                }
+            })
+            .catch(err => {
+                console.error('批量删除失败:', err);
+                showToast(err.message || '批量删除失败，请重试', 'error');
+                // 恢复按钮状态
+                confirmBatchDeleteBtn.innerHTML = originalText;
+                confirmBatchDeleteBtn.disabled = false;
+            });
+        });
+    }
+
+    // 批量删除模态框关闭时恢复按钮状态
+    if (batchDeleteModalEl) {
+        batchDeleteModalEl.addEventListener('hidden.bs.modal', () => {
+            if (confirmBatchDeleteBtn) {
+                confirmBatchDeleteBtn.innerHTML = '确认删除';
+                confirmBatchDeleteBtn.disabled = false;
+            }
+        });
+    }
+
+    // 获取选中的ID列表
+    function getSelectedIds() {
+        return Array.from(selectItems)
+            .filter(item => item.checked)
+            .map(item => item.value);
+    }
+
+    // === 图片预览优化 ===
+    const imagePreviewModalEl = document.getElementById('imagePreviewModal');
+    const imagePreviewModal = imagePreviewModalEl ? new bootstrap.Modal(imagePreviewModalEl) : null;
+    const previewImageEl = document.getElementById('previewImage');
+
+    // 图片点击预览
+    document.querySelectorAll('.img-thumbnail-small').forEach(img => {
+        img.addEventListener('click', () => {
+            const imgUrl = img.getAttribute('data-img-url');
+            if (previewImageEl) previewImageEl.src = imgUrl;
+            if (imagePreviewModal) imagePreviewModal.show();
+        });
+    });
+
+    // 图片预览模态框关闭时清空图片地址（避免缓存）
+    if (imagePreviewModalEl) {
+        imagePreviewModalEl.addEventListener('hidden.bs.modal', () => {
+            if (previewImageEl) previewImageEl.src = '';
+        });
+    }
+
+    // === 自定义提示框 ===
+    function showToast(message, type = 'info') {
+        const toastContainer = document.getElementById('toastContainer');
+        if (!toastContainer) return;
+
+        // 创建提示框元素
+        const toast = document.createElement('div');
+        toast.className = `custom-toast toast-${type} show`;
+
+        // 图标映射
+        const iconMap = {
+            success: 'bi-check-circle',
+            error: 'bi-exclamation-circle',
+            warning: 'bi-exclamation-triangle',
+            info: 'bi-info-circle'
+        };
+
+        toast.innerHTML = `
+            <div class="toast-header">
+                <i class="bi ${iconMap[type]} me-2 text-${type}"></i>
+                <strong class="me-auto">${type === 'success' ? '成功' : type === 'error' ? '错误' : type === 'warning' ? '警告' : '提示'}</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="关闭"></button>
+            </div>
+            <div class="toast-body">
+                ${message}
+            </div>
+        `;
+
+        // 添加到容器
+        toastContainer.appendChild(toast);
+
+        // 自动关闭
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                if (toast.parentNode) toast.parentNode.removeChild(toast);
+            }, 300);
+        }, 3500);
+
+        // 绑定关闭按钮事件
+        toast.querySelector('.btn-close').addEventListener('click', () => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                if (toast.parentNode) toast.parentNode.removeChild(toast);
+            }, 300);
+        });
+    }
+
+    // === 辅助函数 ===
+    // 更新数据计数
+    function updateDataCount(change) {
+        const countBadge = document.querySelector('.data-count-badge');
+        if (countBadge) {
+            let currentCount = parseInt(countBadge.textContent);
+            currentCount += change;
+            countBadge.textContent = currentCount;
+
+            // 计数变化动画
+            countBadge.style.transform = 'scale(1.2)';
+            countBadge.style.transition = 'transform 0.2s ease';
+            setTimeout(() => {
+                countBadge.style.transform = 'scale(1)';
+            }, 200);
+        }
+    }
+
+    // 初始化页面状态
+    updateBatchDeleteButton();
+    updateSelectedCount();
+});
+</script>
+{% endblock %}
