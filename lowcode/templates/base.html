@@ -272,8 +272,8 @@
     <header>
         <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top" aria-label="主导航">
             <div class="container-fluid px-3 px-md-4">
-                <!-- 品牌标识 -->
-                <a class="navbar-brand" href="{% url 'lowcode:dashboard' %}" aria-label="返回首页">
+                <!-- 品牌标识 - 修改为根路径 -->
+                <a class="navbar-brand" href="/" aria-label="返回首页">
                     <i class="bi bi-diagram-3" aria-hidden="true"></i>
                     <span>Icent低代码平台</span>
                 </a>
@@ -289,10 +289,10 @@
                 <!-- 导航菜单 -->
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav me-auto">
-                        <!-- 首页 -->
+                        <!-- 首页 - 修改链接和激活状态判断 -->
                         <li class="nav-item">
-                            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
-                               href="{% url 'lowcode:dashboard' %}">
+                            <a class="nav-link {% if request.path == '/' %}active{% endif %}"
+                               href="/">
                                 <i class="bi bi-house me-1" aria-hidden="true"></i> 首页
                             </a>
                         </li>
@@ -408,7 +408,7 @@
                     </p>
                     <ul class="list-unstyled small">
                         <li class="mb-1"><strong>系统版本：</strong> v1.0.0</li>
-                        <li class="mb-1"><strong>技术栈：</strong> Django + Bootstrap 5</li>
+                        <li class="mb-1"><strong>技术栈：</strong> Django + Bootstrap 5 + Vue 3</li>
                         <li class="mb-1"><strong>功能：</strong> 动态模型管理、数据CRUD、权限控制</li>
                         <li class="mb-1"><strong>安全：</strong> 基于Django权限系统</li>
                     </ul>
