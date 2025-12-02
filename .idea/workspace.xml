@@ -4,10 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6d04ab10-c5f0-4d0c-a31a-e891562065db" name="更改" comment="代码，页面第二次全部文件提交">
+    <list default="true" id="6d04ab10-c5f0-4d0c-a31a-e891562065db" name="更改" comment="修改首页链接">
+      <change afterPath="$PROJECT_DIR$/LowCode/templates/admin/login.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/LowCode/templates/registration/password_reset_complete.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/LowCode/templates/registration/password_reset_confirm.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/LowCode/templates/registration/password_reset_done.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/LowCode/templates/registration/password_reset_form.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Icent_LowCode/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/Icent_LowCode/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Icent_LowCode/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/Icent_LowCode/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lowcode/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/lowcode/templates/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lowcode/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/lowcode/templates/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -20,8 +26,8 @@
         <option value="CSS File" />
         <option value="HTTP Request" />
         <option value="Python Unit Test" />
-        <option value="HTML File" />
         <option value="Python Script" />
+        <option value="HTML File" />
       </list>
     </option>
   </component>
@@ -116,7 +122,7 @@
       <workItem from="1762776272064" duration="146748000" />
       <workItem from="1763466689081" duration="62862000" />
       <workItem from="1763905089797" duration="32033000" />
-      <workItem from="1764087384305" duration="77265000" />
+      <workItem from="1764087384305" duration="79738000" />
     </task>
     <task id="LOCAL-00001" summary="初始版本">
       <option name="closed" value="true" />
@@ -158,7 +164,15 @@
       <option name="project" value="LOCAL" />
       <updated>1764678557927</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="修改首页链接">
+      <option name="closed" value="true" />
+      <created>1764680747860</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1764680747860</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -180,7 +194,8 @@
     <MESSAGE value="admin支持添加动态模型" />
     <MESSAGE value="代码，页面第一次调通后提交" />
     <MESSAGE value="代码，页面第二次全部文件提交" />
-    <option name="LAST_COMMIT_MESSAGE" value="代码，页面第二次全部文件提交" />
+    <MESSAGE value="修改首页链接" />
+    <option name="LAST_COMMIT_MESSAGE" value="修改首页链接" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

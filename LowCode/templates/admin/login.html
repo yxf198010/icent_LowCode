@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Icent低代码平台 - 登录{% endblock %}
+
+{% block extra_css %}
+<!-- 登录页面专属样式 -->
+<style>
+    /* 登录卡片居中优化 */
+    .login-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 180px); /* 减去页眉和页脚高度 */
+        padding: 2rem 0;
+    }
+
+    .login-card {
+        width: 100%;
+        max-width: 420px;
+        padding: 2.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.08);
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .login-logo {
+        font-size: 2.5rem;
+        color: #0d6efd;
+        margin-bottom: 0.75rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #495057;
+    }
+
+    .form-text {
+        font-size: 0.875rem;
+    }
+
+    .btn-login {
+        padding: 0.75rem;
+        font-size: 1rem;
+        font-weight: 500;
+        border-radius: 0.5rem;
+    }
+
+    /* 响应式调整 */
+    @media (max-width: 576px) {
+        .login-card {
+            padding: 1.75rem;
+            margin: 0 1rem;
+        }
+
+        .login-logo {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 登录主容器 -->
+<div class="login-container">
+    <div class="card login-card">
+        <!-- 登录头部 -->
+        <div class="login-header">
+            <i class="bi bi-diagram-3 login-logo" aria-hidden="true"></i>
+            <h2 class="h4 fw-bold text-dark">Icent低代码平台</h2>
+            <p class="text-muted">请登录您的管理员账户</p>
+        </div>
+
+        <!-- 登录表单 -->
+        <form method="post" action="{% url 'admin:login' %}" novalidate>
+            {% csrf_token %}
+
+            <!-- 用户名输入框 -->
+            <div class="mb-3">
+                <label for="{{ form.username.id_for_label }}" class="form-label">
+                    <i class="bi bi-person me-1" aria-hidden="true"></i> 用户名
+                </label>
+                <input type="{{ form.username.field.widget.input_type }}"
+                       name="{{ form.username.name }}"
+                       id="{{ form.username.id_for_label }}"
+                       class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+                       placeholder="请输入用户名"
+                       required
+                       value="{{ form.username.value|default:'' }}">
+                {% if form.username.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.username.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- 密码输入框 -->
+            <div class="mb-3">
+                <label for="{{ form.password.id_for_label }}" class="form-label">
+                    <i class="bi bi-lock me-1" aria-hidden="true"></i> 密码
+                </label>
+                <input type="{{ form.password.field.widget.input_type }}"
+                       name="{{ form.password.name }}"
+                       id="{{ form.password.id_for_label }}"
+                       class="form-control {% if form.password.errors %}is-invalid{% endif %}"
+                       placeholder="请输入密码"
+                       required>
+                {% if form.password.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.password.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+                {% if form.non_field_errors %}
+                    <div class="form-text text-danger mt-1">
+                        {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- 记住登录状态 -->
+            <div class="mb-4 form-check">
+                <input type="checkbox"
+                       name="{{ form.remember.name }}"
+                       id="{{ form.remember.id_for_label }}"
+                       class="form-check-input"
+                       {% if form.remember.value %}checked{% endif %}>
+                <label class="form-check-label" for="{{ form.remember.id_for_label }}">
+                    记住登录状态
+                </label>
+            </div>
+
+            <!-- 隐藏的 next 参数（保持跳转功能） -->
+            {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+            {% else %}
+                <input type="hidden" name="next" value="{% url 'admin:index' %}">
+            {% endif %}
+
+            <!-- 登录按钮 -->
+            <button type="submit" class="btn btn-primary w-100 btn-login">
+                <i class="bi bi-box-arrow-in-right me-1" aria-hidden="true"></i> 登录
+            </button>
+        </form>
+
+        <!-- 底部链接 -->
+        <div class="mt-4 text-center">
+            <p class="text-muted small">
+                <a href="{% url 'password_reset' %}" class="text-primary text-decoration-none">
+                    忘记密码？
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- 登录页面专属脚本 -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 自动聚焦用户名输入框
+        const usernameInput = document.getElementById('{{ form.username.id_for_label }}');
+        if (usernameInput) {
+            usernameInput.focus();
+        }
+
+        // 表单提交时添加加载状态
+        const loginForm = document.querySelector('form');
+        loginForm.addEventListener('submit', function() {
+            const submitBtn = loginForm.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading-spinner me-2"></span> 登录中...';
+        });
+    });
+</script>
+{% endblock %}

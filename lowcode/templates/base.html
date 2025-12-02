@@ -53,6 +53,14 @@
             gap: 0.5rem;
         }
 
+        /* Logo 样式：固定100×100px，保持清晰且不拉伸 */
+        .brand-logo {
+            width: 100px;
+            height: 100px;
+            object-fit: contain; /* 保持图片比例，避免拉伸 */
+            border-radius: 0.375rem; /* 轻微圆角，提升视觉效果 */
+        }
+
         .navbar-brand i {
             font-size: 1.5rem;
         }
@@ -213,7 +221,7 @@
             to { transform: rotate(360deg); }
         }
 
-        /* 响应式优化 */
+        /* 响应式优化 - 适配移动端，避免Logo过大 */
         @media (max-width: 991px) {
             .navbar-nav {
                 gap: 0.5rem;
@@ -221,6 +229,12 @@
 
             .nav-link {
                 padding: 0.5rem 1rem !important;
+            }
+
+            /* 平板端缩小Logo，保持布局协调 */
+            .brand-logo {
+                width: 80px;
+                height: 80px;
             }
         }
 
@@ -246,11 +260,22 @@
             .truncate-text {
                 max-width: 200px;
             }
+
+            /* 移动端进一步缩小Logo，适配小屏幕 */
+            .brand-logo {
+                width: 60px;
+                height: 60px;
+            }
+
+            .navbar-brand {
+                font-size: 1.1rem;
+                gap: 0.3rem;
+            }
         }
 
         @media (max-width: 576px) {
             .navbar-brand span {
-                font-size: 1.1rem;
+                font-size: 1rem;
             }
 
             .footer {
@@ -260,6 +285,12 @@
 
             .truncate-text {
                 max-width: 150px;
+            }
+
+            /* 超小屏保持Logo可读性 */
+            .brand-logo {
+                width: 50px;
+                height: 50px;
             }
         }
     </style>
@@ -272,9 +303,10 @@
     <header>
         <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top" aria-label="主导航">
             <div class="container-fluid px-3 px-md-4">
-                <!-- 品牌标识 - 修改为根路径 -->
+                <!-- 品牌标识 - 新增Logo图片（左上角） -->
                 <a class="navbar-brand" href="/" aria-label="返回首页">
-                    <i class="bi bi-diagram-3" aria-hidden="true"></i>
+                    <!-- Logo图片：路径为 static/image/Icent_logo.png，尺寸100×100px -->
+                    <img src="{% static 'image/Icent_logo.png' %}" alt="Icent低代码平台Logo" class="brand-logo">
                     <span>Icent低代码平台</span>
                 </a>
 

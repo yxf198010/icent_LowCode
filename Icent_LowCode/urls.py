@@ -24,6 +24,7 @@ from lowcode.views import index_view
 urlpatterns = [
     path('', index_view, name='home'),  # 根路径直接映射首页
     path('admin/', admin.site.urls),
+    path('accounts/', include('django.contrib.auth.urls')),
     path('health/', MainView.as_view(), name='health_check'),
     # 旧路径重定向（避免冲突）
     path('lowcode/', RedirectView.as_view(url='/', permanent=True), name='lowcode-redirect'),

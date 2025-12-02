@@ -61,6 +61,9 @@ ALLOWED_HOSTS = [host.strip() for host in get_env_var("ALLOWED_HOSTS", default="
 
 # Application definition
 INSTALLED_APPS = [
+    # Local
+    'lowcode',
+    # Django 内置应用
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -77,8 +80,6 @@ INSTALLED_APPS = [
     'health_check.db',
     'health_check.cache',
     'health_check.storage',
-    # Local
-    'lowcode',
 ]
 
 MIDDLEWARE = [
