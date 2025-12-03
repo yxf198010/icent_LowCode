@@ -342,7 +342,14 @@
                                 <i class="bi bi-gear me-1" aria-hidden="true"></i> 模型配置
                             </a>
                         </li>
-                        <!-- 系统工具（新增） -->
+                        <!-- 🔥 核心修改：表单设计器（路径改为 /form-designer/，菜单名保持不变） -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if '/form-designer/' in request.path %}active{% endif %}"
+                               href="/form-designer/">
+                                <i class="bi bi-journal-text me-1" aria-hidden="true"></i> 表单设计器
+                            </a>
+                        </li>
+                        <!-- 系统工具（原有） -->
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.url_name == 'model-upgrade' %}active{% endif %}"
                                href="{% url 'lowcode:model-upgrade' %}">

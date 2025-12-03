@@ -63,6 +63,7 @@ ALLOWED_HOSTS = [host.strip() for host in get_env_var("ALLOWED_HOSTS", default="
 INSTALLED_APPS = [
     # Local
     'lowcode',
+    'vue_frontend',  # 新增：添加 Vue 前端应用
     # Django 内置应用
     'django.contrib.admin',
     'django.contrib.auth',
@@ -161,8 +162,14 @@ LANGUAGES = [
 # ----------------------------
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']  # For development
-STATIC_ROOT = BASE_DIR / 'staticfiles'  # For production (collectstatic)
+# 开发环境：静态文件目录（Django 会从这里查找静态资源）
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),  # 原有 根目录静态资源
+    os.path.join(BASE_DIR, 'vue_frontend/static'),  # Vue 静态资源目录（存放 assets）
+]  # For development
+# 生产环境：执行 collectstatic 后，静态文件会收集到这里（部署时需配置）
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # For production (collectstatic)
+
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
