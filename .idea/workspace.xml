@@ -4,22 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6d04ab10-c5f0-4d0c-a31a-e891562065db" name="更改" comment="集成Vue">
+    <list default="true" id="6d04ab10-c5f0-4d0c-a31a-e891562065db" name="更改" comment="第一次调通首页和低代码设计器">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Icent_LowCode/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/Icent_LowCode/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Icent_LowCode/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/Icent_LowCode/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lowcode/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/lowcode/templates/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lowcode/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/lowcode/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vue_frontend/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/LowCode/templatetags/template_tags.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vue_frontend/admin.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/vue_frontend/apps.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/vue_frontend/migrations/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/vue_frontend/models.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/vue_frontend/static/frontend/assets/index-BUoLgWFu.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/vue_frontend/static/frontend/assets/index-DdZ8p-nJ.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/vue_frontend/templates/frontend/index.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/vue_frontend/tests.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/vue_frontend/views.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -137,7 +123,7 @@
       <workItem from="1764869133691" duration="12074000" />
       <workItem from="1765110126928" duration="972000" />
       <workItem from="1765111647099" duration="2846000" />
-      <workItem from="1765114967301" duration="1456000" />
+      <workItem from="1765114967301" duration="1959000" />
     </task>
     <task id="LOCAL-00001" summary="初始版本">
       <option name="closed" value="true" />
@@ -219,7 +205,15 @@
       <option name="project" value="LOCAL" />
       <updated>1764789359557</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="第一次调通首页和低代码设计器">
+      <option name="closed" value="true" />
+      <created>1765116553832</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1765116553832</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -244,7 +238,8 @@
     <MESSAGE value="修改首页链接" />
     <MESSAGE value="增加网站LOGO" />
     <MESSAGE value="集成Vue" />
-    <option name="LAST_COMMIT_MESSAGE" value="集成Vue" />
+    <MESSAGE value="第一次调通首页和低代码设计器" />
+    <option name="LAST_COMMIT_MESSAGE" value="第一次调通首页和低代码设计器" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
