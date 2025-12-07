@@ -1,4 +1,3 @@
-# settings.py
 """
 Django settings for Icent_LowCode project.
 
@@ -22,7 +21,7 @@ if env_path.exists():
 else:
     # Optional: warn in dev, fail in prod?
     if not os.getenv("SECRET_KEY"):
-        print("⚠️  No .env file found and SECRET_KEY not set via environment.")
+        print("[WARNING] No .env file found and SECRET_KEY not set via environment.")  # 替换特殊字符
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -63,7 +62,6 @@ ALLOWED_HOSTS = [host.strip() for host in get_env_var("ALLOWED_HOSTS", default="
 INSTALLED_APPS = [
     # Local
     'lowcode',
-    'vue_frontend',  # 新增：添加 Vue 前端应用
     # Django 内置应用
     'django.contrib.admin',
     'django.contrib.auth',
@@ -99,14 +97,22 @@ ROOT_URLCONF = 'Icent_LowCode.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [
+            BASE_DIR / 'lowcode/templates',  # 统一使用 Path 语法，替换 os.path.join
+            BASE_DIR / 'templates',  # 统一使用 Path 语法，替换 os.path.join
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.debug',  # 启用debug变量
             ],
+            # 注册自定义模板标签（关键）
+            'libraries': {
+                'template_tags': 'lowcode.templatetags.template_tags',
+            }
         },
     },
 ]
@@ -158,18 +164,23 @@ LANGUAGES = [
 ]
 
 # ----------------------------
-# Static & Media Files
+# Static & Media Files (修正后)
 # ----------------------------
 
 STATIC_URL = '/static/'
-# 开发环境：静态文件目录（Django 会从这里查找静态资源）
+# 统一使用 Path 语法，避免混用 os.path
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),  # 原有 根目录静态资源
-    os.path.join(BASE_DIR, 'vue_frontend/static'),  # Vue 静态资源目录（存放 assets）
-]  # For development
-# 生产环境：执行 collectstatic 后，静态文件会收集到这里（部署时需配置）
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') # For production (collectstatic)
+    BASE_DIR / 'static',  # 根目录静态资源（存放 Vue 打包的 lowcode_designer）
+    BASE_DIR / 'lowcode' / 'static',  # lowcode 应用内静态资源
+]
+# 生产环境静态文件收集目录
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# 显式配置静态文件查找器（可选，增强兼容性）
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -213,7 +224,7 @@ SPECTACULAR_SETTINGS = {
 }
 
 # ----------------------------
-# Logging
+# Logging (最终修正版：移除 StreamHandler 的 encoding 参数)
 # ----------------------------
 
 LOGS_DIR = BASE_DIR / "log"
@@ -222,23 +233,22 @@ try:
 except OSError:
     pass
 
-
-# 假设 LOGS_DIR 和 get_env_var 已定义
-# 示例：
-# LOGS_DIR = BASE_DIR / 'logs'
-# os.makedirs(LOGS_DIR, exist_ok=True)
-
 def get_lowcode_log_level():
     """智能确定 lowcode 日志级别"""
-    # 1. 优先从环境变量读取
-    level = get_env_var("LOWCODE_LOG_LEVEL", default="").strip().upper()
-    if level in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
-        return level
+    # 如需保留环境变量控制，可注释上面一行，启用下面逻辑：
+    # level = get_env_var("LOWCODE_LOG_LEVEL", default="").strip().upper()
+    # if level in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
+    #     return level
+    # return "DEBUG" if DEBUG else "INFO"
 
-    # 2. 开发模式下默认为 DEBUG，生产为 INFO
-    return "DEBUG" if DEBUG else "INFO"
+    # 强制设置为 INFO，不再输出 DEBUG 日志
+    return "INFO"  # 默认 INFO，不再根据 DEBUG 模式切换
 
+# DEBUG = False  # 替代原来的 get_env_var 动态获取
+# 或保留环境变量，但强制默认值为 False：
+# DEBUG = get_env_var("DEBUG", default="False", cast=lambda x: x.lower() in ("true", "1", "yes"))
 
+# 最终修正版 LOGGING 配置
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -252,6 +262,10 @@ LOGGING = {
             'format': '{levelname} {message}',
             'style': '{',
         },
+        'audit': {  # 新增审计日志格式
+            'format': '{levelname} {asctime} {user} {method} {params} {message}',
+            'style': '{',
+        },
     },
 
     'handlers': {
@@ -260,30 +274,43 @@ LOGGING = {
             'class': 'logging.FileHandler',
             'filename': LOGS_DIR / 'django.log',
             'formatter': 'verbose',
+            'encoding': 'utf-8',  # FileHandler 支持 encoding，保留
         },
         'console': {
-            # 控制台始终输出 DEBUG 及以上（由 logger 级别最终控制）
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
+            # 移除 encoding 参数：StreamHandler 不支持该参数，避免初始化报错
+        },
+        'audit_file': {  # 审计日志处理器
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': LOGS_DIR / 'audit.log',
+            'formatter': 'audit',
+            'encoding': 'utf-8',  # FileHandler 支持 encoding，保留
         },
     },
 
     'root': {
         'handlers': ['console', 'file'],
-        'level': 'INFO',
+        'level': 'INFO',    # 根日志器级别为 INFO，过滤 DEBUG
     },
 
     'loggers': {
         'django': {
             'handlers': ['console', 'file'],
-            'level': 'INFO',
+            'level': 'INFO',     # Django 核心日志级别为 INFO
             'propagate': False,
         },
         'lowcode': {
             'handlers': ['console', 'file'],
-            'level': get_lowcode_log_level(),  # 动态决定
-            'propagate': False,  # ⚠️ 关键：避免被 root logger 重复处理
+            'level': get_lowcode_log_level(),   # 现在返回 INFO,若只想屏蔽 lowcode 应用的 DEBUG 日志，可直接将其日志级别设为 WARNING：
+            'propagate': False,
+        },
+        'lowcode.decorators.audit_log': {  # 审计日志专用 logger
+            'handlers': ['audit_file'],
+            'level': 'INFO',     # 审计日志级别为 INFO
+            'propagate': False,
         },
     },
 }
@@ -344,29 +371,11 @@ if SENTRY_DSN:
 
 DYNAMIC_MODEL_CONFIG_PATH = BASE_DIR / 'config' / 'lowcode_models.json'
 
-
 # 启用低代码方法调用审计日志（默认关闭）
 LOWCODE_METHOD_LOGGING_ENABLED = True  # 开发/审计时开启，生产按需
 
-# 可选：配置专用日志器
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "handlers": {
-        "audit_file": {
-            "level": "INFO",
-            "class": "logging.FileHandler",
-            "filename": "audit.log",
-        },
-    },
-    "loggers": {
-        "lowcode.decorators.audit_log": {
-            "handlers": ["audit_file"],
-            "level": "INFO",
-            "propagate": False,
-        },
-    },
-}
-
+# ----------------------------
+# CORS Settings
+# ----------------------------
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = ["http://localhost:5173"]  # Vue Dev Server 默认端口

@@ -1,5 +1,6 @@
 from django.urls import path, include
 from django.views.generic import RedirectView
+from django.views.static import serve  # 新增：用于静态文件服务
 from rest_framework.routers import DefaultRouter
 from rest_framework.permissions import (
     IsAuthenticated, IsAdminUser, BasePermission, SAFE_METHODS
@@ -7,8 +8,10 @@ from rest_framework.permissions import (
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.response import Response
 from django.conf import settings
+from django.shortcuts import render  # 新增：导入模板渲染函数
 from . import views
 import datetime
+import os  # 新增：用于路径处理
 
 app_name = 'lowcode'  # 严格统一命名空间，全项目复用
 
@@ -51,6 +54,22 @@ class IsDataOwnerOrAdmin(BasePermission):
             return False
 
 # ==============================
+# LowcodeDesigner 相关视图与路由配置（优化路径匹配）
+# ==============================
+# 1. favicon.ico 访问视图（适配前端图标）
+def favicon_view(request):
+    """提供 favicon.ico 静态文件访问"""
+    favicon_path = 'lowcode_designer/favicon.ico'
+    # 适配开发/生产环境的静态文件目录
+    document_root = settings.STATICFILES_DIRS[0] if settings.DEBUG else settings.STATIC_ROOT
+    return serve(request, favicon_path, document_root=document_root)
+
+# 2. LowcodeDesigner 前端页面视图（渲染构建后的模板）
+def lowcode_designer_view(request):
+    """渲染 LowcodeDesigner 前端构建后的入口模板"""
+    return render(request, 'lowcode_designer/index.html')
+
+# ==============================
 # DRF API 路由配置（仅保留已实现的视图）
 # 优化点：添加注释说明、统一路由命名规范
 # ==============================
@@ -76,12 +95,10 @@ if hasattr(views, 'DataPermissionViewSet'):
 
 # ==============================
 # API 子路由分组（移除未实现的依赖）
-# 修复点：将列表中的 if 条件改为传统语句添加，兼容所有 Python 版本
 # ==============================
 api_urlpatterns = [
     # API根路径文档（所有登录用户可访问）
     path("", views.APIRootView.as_view(), name='api-root'),
-
     # 基础CRUD API（由router自动生成）
     path("", include(router.urls)),
 ]
@@ -142,9 +159,15 @@ if hasattr(views, 'refresh_methods'):
 
 # ==============================
 # 主URL配置（规范稳定版）
-# 修复点：同样将列表中的 if 条件改为传统语句添加
 # ==============================
 urlpatterns = [
+    # ------------------------------
+    # LowcodeDesigner 相关路由（优化命名与路径）
+    # ------------------------------
+    path('favicon.ico', favicon_view, name='favicon'),  # 图标访问路由
+    path('designer/', lowcode_designer_view, name='lowcode_designer'),  # 设计器入口
+    path('designer/<path:path>', lowcode_designer_view),  # history 模式支持（捕获所有子路径）
+
     # ------------------------------
     # 核心：首页配置（根路径直接映射）
     # ------------------------------

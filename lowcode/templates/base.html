@@ -1,3 +1,4 @@
+<!-- lowcode/templates/base.html -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 {% load static %}
@@ -10,7 +11,7 @@
     <meta name="description" content="Icent低代码平台 - 基于Django+Bootstrap+Vue3的低代码平台">
     <meta name="keywords" content="动态模型,Icent低代码,Django,Bootstrap,Vue3">
     <title>{% block title %}Icent低代码平台{% endblock %}</title>
-
+    <link rel="icon" href="{% static 'favicon.ico' %}" />
     <!-- 本地资源引用 -->
     <!-- Bootstrap 5 CSS -->
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
@@ -342,10 +343,10 @@
                                 <i class="bi bi-gear me-1" aria-hidden="true"></i> 模型配置
                             </a>
                         </li>
-                        <!-- 🔥 核心修改：表单设计器（路径改为 /form-designer/，菜单名保持不变） -->
+                        <!-- 🔥 核心修改：表单设计器（路径改为 /lowcode_designer/，菜单名保持不变） -->
                         <li class="nav-item">
-                            <a class="nav-link {% if '/form-designer/' in request.path %}active{% endif %}"
-                               href="/form-designer/">
+                            <a class="nav-link {% if '/lowcode_designer/' in request.path %}active{% endif %}"
+                               href="/lowcode_designer/">
                                 <i class="bi bi-journal-text me-1" aria-hidden="true"></i> 表单设计器
                             </a>
                         </li>
