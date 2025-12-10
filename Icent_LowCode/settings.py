@@ -109,10 +109,11 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.debug',  # 启用debug变量
             ],
-            # 注册自定义模板标签（关键）
-            'libraries': {
-                'template_tags': 'lowcode.templatetags.template_tags',
-            }
+            # # 注册自定义模板标签（关键）
+            # 'libraries': {
+            #     'template_tags': 'lowcode.templatetags.template_tags',
+            #     'vite': 'lowcode.templatetags.vite',  # 👈 显式注册
+            # }
         },
     },
 ]
@@ -170,8 +171,8 @@ LANGUAGES = [
 STATIC_URL = '/static/'
 # 统一使用 Path 语法，避免混用 os.path
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',  # 根目录静态资源（存放 Vue 打包的 lowcode_designer）
-    BASE_DIR / 'lowcode' / 'static',  # lowcode 应用内静态资源
+    BASE_DIR / 'static',  # 项目根目录的通用静态资源（Bootstrap 等）
+    BASE_DIR / 'lowcode' / 'static',  # 👈 关键：包含低代码设计器的构建产物
 ]
 # 生产环境静态文件收集目录
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -379,3 +380,7 @@ LOWCODE_METHOD_LOGGING_ENABLED = True  # 开发/审计时开启，生产按需
 # ----------------------------
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = ["http://localhost:5173"]  # Vue Dev Server 默认端口
+
+
+# Vite manifest 路径（相对于 STATIC_ROOT 或 STATICFILES_DIRS）
+VITE_MANIFEST_PATH = "lowcode_designer/manifest.json"

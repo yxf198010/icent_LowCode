@@ -1,6 +1,8 @@
+# lowcode/views.py
 import logging
 import os
 import re
+import json
 from datetime import datetime, date
 from uuid import uuid4
 from typing import Any, Dict, List, Type, Optional
@@ -21,6 +23,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.core.cache import cache
 from django.utils.text import capfirst
 from django.utils import timezone
+from django.template.response import TemplateResponse  # 修正：正确导入 TemplateResponse
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -31,6 +34,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.core.files.storage import default_storage
+from lowcode.utils.vite import get_vite_asset
 
 # Local imports
 from .forms import ModelLowCodeForm
@@ -351,6 +355,26 @@ def get_all_dynamic_model_configs() -> List[ModelConfigType]:
 
     # 按创建时间倒序（最新的模型在前）
     return sorted(model_configs, key=lambda x: x['create_time'] or datetime.min, reverse=True)
+
+
+def designer_view(request):
+    vite_assets = None
+    if not settings.DEBUG:
+        manifest_path = os.path.join(
+            settings.BASE_DIR,
+            'lowcode', 'static', 'lowcode_designer', 'manifest.json'
+        )
+        with open(manifest_path, 'r', encoding='utf-8') as f:
+            manifest = json.load(f)
+            entry = manifest['src/main.js']
+            vite_assets = {
+                'js': f"lowcode_designer/{entry['file']}",
+                'css': [f"lowcode_designer/{css}" for css in entry.get('css', [])]
+            }
+
+    return render(request, 'lowcode/designer.html', {
+        'vite_assets': vite_assets
+    })
 
 
 # ========== Views ==========
