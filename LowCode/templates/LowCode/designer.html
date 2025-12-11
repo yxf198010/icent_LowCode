@@ -4,19 +4,13 @@
 
 {% block title %}低代码设计器 - Icent工业低代码平台{% endblock %}
 
-{% block extra_head %}
-        <!-- 无论 DEBUG 是 true 还是 false，都使用构建产物 -->
-        <!-- 自动注入 CSS -->
-        {% vite_entry %}
-{% endblock %}
-
 {% block content %}
-    <div id="app" style="
+<div id="app" style="
     width: 100%;
-    min-height: 100vh; /* 改为 min-height */
+    min-height: 100vh;
     box-sizing: border-box;
-    "></div>
-        <!-- 无论 DEBUG 是 true 还是 false，都使用构建产物 -->
-        <!-- JS 已在 vite_entry 中包含，无需重复 -->
-        <script type="module" src="http://localhost:5173/src/main.js"></script>
+"></div>
+
+<!-- 关键：在 #app 元素之后加载 JS/CSS -->
+{% vite_entry "src/main.js" %}
 {% endblock %}

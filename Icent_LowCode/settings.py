@@ -375,12 +375,12 @@ DYNAMIC_MODEL_CONFIG_PATH = BASE_DIR / 'config' / 'lowcode_models.json'
 # 启用低代码方法调用审计日志（默认关闭）
 LOWCODE_METHOD_LOGGING_ENABLED = True  # 开发/审计时开启，生产按需
 
-# ----------------------------
-# CORS Settings
-# ----------------------------
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = ["http://localhost:5173"]  # Vue Dev Server 默认端口
-
 
 # Vite manifest 路径（相对于 STATIC_ROOT 或 STATICFILES_DIRS）
 VITE_MANIFEST_PATH = "lowcode_designer/manifest.json"
+
+# 启用 Vite 开发模式（仅在 DEBUG=True 时生效）,开发时设为 True，部署前改为 False
+VITE_DEV_MODE = True
+
+# 可选：自定义 Vite Dev Server 地址（默认 http://localhost:5173）
+VITE_DEV_SERVER_URL = 'http://localhost:5173'
