@@ -53,6 +53,7 @@ from .api.serializers import (
 )
 from lowcode.io.excel import generate_method_log_excel
 from .tasks import async_export_method_log
+import django
 
 # Config
 ALLOWED_MODELS = getattr(settings, 'LOWCODE_ALLOWED_MODELS', None)
@@ -384,6 +385,9 @@ def index_view(request: HttpRequest):
         total_fields = sum(cfg['field_count'] for cfg in model_configs)
         total_records = sum(cfg['record_count'] for cfg in model_configs if cfg['record_count'] != -1)
 
+        # 获取 Django 版本
+        django_version = django.get_version()
+
         # 组装上下文数据（适配 index.html 模板需求）
         context = {
             'model_configs': model_configs,
@@ -392,7 +396,8 @@ def index_view(request: HttpRequest):
             'created_table_count': created_table_count,
             'total_fields': total_fields,
             'total_records': total_records,
-            'title': '系统首页 - Icent低代码平台',
+            'django_version': django_version,
+            'title': '系统首页 - Icent AI原生低代码平台',
         }
 
         return render(request, 'index.html', context)
@@ -408,7 +413,7 @@ def index_view(request: HttpRequest):
             'created_table_count': 0,
             'total_fields': 0,
             'total_records': 0,
-            'title': '系统首页 - Icent低代码平台',
+            'title': '系统首页 - Icent AI原生低代码平台',
         })
 
 
@@ -418,7 +423,7 @@ def model_upgrade_view(request: HttpRequest):
     lowcode_base_url = request.build_absolute_uri('/lowcode/')
     context = {
         'lowcode_base_url': lowcode_base_url,
-        'title': '模型升级 - Icent低代码平台'
+        'title': '模型升级 - Icent AI原生低代码平台'
     }
     return render(request, 'lowcode/model_upgrade.html', context)
 
@@ -466,7 +471,7 @@ def dashboard_view(request: HttpRequest):
 
     return render(request, 'lowcode/dashboard.html', {
         'overview_data': overview_data,
-        'title': 'Icent低代码平台 - 仪表盘'
+        'title': 'Icent AI原生低代码平台 - 仪表盘'
     })
 
 

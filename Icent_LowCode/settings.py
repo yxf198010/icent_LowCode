@@ -9,6 +9,7 @@ from pathlib import Path
 import logging
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
+import django
 
 from Icent_LowCode.version import __version__
 
@@ -384,3 +385,6 @@ VITE_DEV_MODE = True
 
 # 可选：自定义 Vite Dev Server 地址（默认 http://localhost:5173）
 VITE_DEV_SERVER_URL = 'http://localhost:5173'
+
+# 手动定义变量
+django_version = django.get_version()

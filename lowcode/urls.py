@@ -272,7 +272,7 @@ if not hasattr(views, 'APIRootView'):
         def get(self, request):
             base_url = request.build_absolute_uri('/api/v1/')
             return Response({
-                "message": "Icent低代码平台API接口文档",
+                "message": "Icent AI原生低代码平台API接口文档",
                 "version": "1.0.0",
                 "description": self.description,
                 "core-endpoints": {
@@ -308,7 +308,7 @@ def api_health_check(request):
         "status": "healthy",
         "service": "dynamic-model-system",
         "api_version": "v1",
-        "django_version": settings.DJANGO_VERSION,
+        "django_version": settings.django_version,
         "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "environment": getattr(settings, 'ENVIRONMENT', "production")
     })
@@ -354,3 +354,4 @@ if settings.DEBUG:
         })
 
     urlpatterns.append(path('api/v1/debug/', api_debug_info, name='api-debug-info'))
+

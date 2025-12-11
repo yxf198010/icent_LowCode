@@ -8,9 +8,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="description" content="Icent低代码平台 - 基于Django+Bootstrap+Vue3的低代码平台">
+    <meta name="description" content="Icent AI原生低代码平台 - 基于Django+Bootstrap+Vue3的低代码平台">
     <meta name="keywords" content="动态模型,Icent低代码,Django,Bootstrap,Vue3">
-    <title>{% block title %}Icent低代码平台{% endblock %}</title>
+    <title>{% block title %}Icent AI原生低代码平台{% endblock %}</title>
     <link rel="icon" href="{% static 'favicon.ico' %}?v=1.0" type="image/x-icon" />
     <!-- 本地资源引用 -->
     <!-- Bootstrap 5 CSS -->
@@ -306,8 +306,8 @@
                 <!-- 品牌标识 - 新增Logo图片（左上角） -->
                 <a class="navbar-brand" href="/" aria-label="返回首页">
                     <!-- Logo图片：路径为 static/image/Icent_logo.png，尺寸100×100px -->
-                    <img src="{% static 'image/Icent_logo.png' %}" alt="Icent低代码平台Logo" class="brand-logo">
-                    <span>Icent低代码平台</span>
+                    <img src="{% static 'image/Icent_logo.png' %}" alt="Icent AI原生低代码平台Logo" class="brand-logo">
+                    <span>Icent AI原生低代码平台</span>
                 </a>
 
                 <!-- 移动端菜单按钮 -->
@@ -427,7 +427,7 @@
     <footer class="footer text-center text-muted">
         <div class="container px-3">
             <p class="mb-0">
-                &copy; {% now "Y" %} Icent低代码平台 | 基于 Django {{ django_version }} + Bootstrap 5 + Vue 3 开发 |
+                &copy; {% now "Y" %} Icent AI原生低代码平台 | 基于 Django {{ django_version }} + Bootstrap 5 + Vue 3 + Element-Plus 2.12 开发 |
                 <a href="#" class="text-decoration-none text-muted" data-bs-toggle="modal" data-bs-target="#aboutModal">关于系统</a>
             </p>
         </div>
@@ -438,7 +438,7 @@
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="aboutModalLabel">关于Icent低代码平台</h5>
+                    <h5 class="modal-title" id="aboutModalLabel">关于Icent AI原生低代码平台</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
                 </div>
                 <div class="modal-body">
@@ -446,8 +446,8 @@
                         <i class="bi bi-diagram-3 fs-3 text-primary" aria-hidden="true"></i>
                     </p>
                     <ul class="list-unstyled small">
-                        <li class="mb-1"><strong>系统版本：</strong> v1.0.0</li>
-                        <li class="mb-1"><strong>技术栈：</strong> Django + Bootstrap 5 + Vue 3</li>
+                        <li class="mb-1"><strong>系统版本：</strong> v0.1.0</li>
+                        <li class="mb-1"><strong>技术栈：</strong> Django {{ django_version }} + Bootstrap 5 + Vue 3 + Element-Plus 2.12</li>
                         <li class="mb-1"><strong>功能：</strong> 动态模型管理、数据CRUD、权限控制</li>
                         <li class="mb-1"><strong>安全：</strong> 基于Django权限系统</li>
                     </ul>
