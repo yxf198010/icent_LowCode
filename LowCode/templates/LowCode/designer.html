@@ -5,12 +5,13 @@
 {% block title %}低代码设计器 - Icent工业低代码平台{% endblock %}
 
 {% block content %}
-<div id="app" style="
-    width: 100%;
-    min-height: 100vh;
-    box-sizing: border-box;
-"></div>
+<div id="app" class="lowcode-designer-container">
+    <!-- 可选：加载提示 -->
+    <div class="loading-placeholder">
+        加载中...
+    </div>
+</div>
 
-<!-- 关键：在 #app 元素之后加载 JS/CSS -->
+<!-- 关键：在 #app 之后加载资源 -->
 {% vite_entry "src/main.js" %}
 {% endblock %}

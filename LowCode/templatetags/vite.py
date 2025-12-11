@@ -1,25 +1,12 @@
 # lowcode/templatetags/vite.py
-import json
 import os
 from django import template
 from django.conf import settings
 from django.templatetags.static import static
 from django.utils.safestring import mark_safe
+from lowcode.utils.vite import get_vite_asset
 
 register = template.Library()
-
-
-def _get_manifest():
-    """读取 Vite 构建生成的 manifest.json 文件"""
-    manifest_path = os.path.join(
-        settings.BASE_DIR,
-        'lowcode', 'static', 'lowcode_designer', 'manifest.json'
-    )
-    if not os.path.exists(manifest_path):
-        raise FileNotFoundError(f"Vite manifest not found at {manifest_path}. "
-                                f"Did you run 'npm run build' in the frontend directory?")
-    with open(manifest_path, 'r', encoding='utf-8') as f:
-        return json.load(f)
 
 
 @register.simple_tag
@@ -41,25 +28,15 @@ def vite_entry(entry_name='src/main.js'):
 
     # === 生产模式：使用构建产物 ===
     try:
-        manifest = _get_manifest()
-        if entry_name not in manifest:
-            available = ', '.join(manifest.keys())
-            raise KeyError(
-                f"Entry '{entry_name}' not found in manifest. Available entries: {available}"
-            )
-
-        entry = manifest[entry_name]
+        assets = get_vite_asset(
+            app_name="lowcode_designer",
+            entry_key=entry_name,
+            dev_fallback=None  # 生产环境不用 fallback
+        )
         tags = []
-
-        # 注入 CSS（如果有）
-        for css in entry.get('css', []):
-            url = static(f"lowcode_designer/{css}")
-            tags.append(f'<link rel="stylesheet" href="{url}">')
-
-        # 注入 JS
-        js_url = static(f"lowcode_designer/{entry['file']}")
-        tags.append(f'<script type="module" src="{js_url}"></script>')
-
+        for css in assets.get('css', []):
+            tags.append(f'<link rel="stylesheet" href="{static(css)}">')
+        tags.append(f'<script type="module" src="{static(assets["js"])}"></script>')
         return mark_safe('\n'.join(tags))
 
     except Exception as e:

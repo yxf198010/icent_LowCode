@@ -358,23 +358,15 @@ def get_all_dynamic_model_configs() -> List[ModelConfigType]:
 
 
 def designer_view(request):
-    vite_assets = None
-    if not settings.DEBUG:
-        manifest_path = os.path.join(
-            settings.BASE_DIR,
-            'lowcode', 'static', 'lowcode_designer', 'manifest.json'
-        )
-        with open(manifest_path, 'r', encoding='utf-8') as f:
-            manifest = json.load(f)
-            entry = manifest['src/main.js']
-            vite_assets = {
-                'js': f"lowcode_designer/{entry['file']}",
-                'css': [f"lowcode_designer/{css}" for css in entry.get('css', [])]
-            }
-
-    return render(request, 'lowcode/designer.html', {
-        'vite_assets': vite_assets
-    })
+    context = {}
+    if not (settings.DEBUG and getattr(settings, 'VITE_DEV_MODE', True)):
+        try:
+            context['vite_assets'] = get_vite_asset(app_name="lowcode_designer")
+        except Exception as e:
+            logger.error("Vite asset loading failed", exc_info=True)
+            if settings.DEBUG:
+                raise
+    return render(request, 'lowcode/designer.html', context)
 
 
 # ========== Views ==========
