@@ -55,6 +55,8 @@ from lowcode.io.excel import generate_method_log_excel
 from .tasks import async_export_method_log
 import django
 
+from rest_framework.decorators import api_view, permission_classes
+
 # Config
 ALLOWED_MODELS = getattr(settings, 'LOWCODE_ALLOWED_MODELS', None)
 EXPORT_MAX_RECORDS = getattr(settings, 'LOWCODE_EXPORT_MAX_RECORDS', 50000)
@@ -416,6 +418,31 @@ def index_view(request: HttpRequest):
             'title': '系统首页 - Icent AI原生低代码平台',
         })
 
+
+@staff_member_required  # 仅管理员可创建
+def model_create_view(request: HttpRequest):
+    """动态模型创建视图（核心：创建模型本身）"""
+    if request.method == 'POST':
+        # 处理表单提交（模型名称、表名、字段配置等）
+        form = ModelLowCodeForm(request.POST)
+        if form.is_valid():
+            # 保存模型元数据（ModelLowCode）
+            model_config = form.save(commit=False)
+            # 自动生成表名（复用 ModelLowCode 的 save 方法逻辑）
+            model_config.save()
+            # 后续可添加：处理字段配置，创建 FieldModel 记录
+            messages.success(request, f"模型 {model_config.name} 创建成功！")
+            return redirect('lowcode:model-list')  # 跳转到模型列表页
+    else:
+        # GET 请求：渲染创建表单
+        form = ModelLowCodeForm()
+
+    context = {
+        'form': form,
+        'title': '创建动态模型',
+        'lowcode_base_url': request.build_absolute_uri('/lowcode/')
+    }
+    return render(request, 'lowcode/model-create.html', context)
 
 @staff_member_required
 def model_upgrade_view(request: HttpRequest):
@@ -1056,3 +1083,88 @@ class APIRootView(APIView):
             },
             "notice": "生产环境建议限制API访问IP，避免敏感操作泄露"
         })
+
+"""VUE创建动态模型API接口"""
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def create_model_api(request):
+    """创建动态模型API接口"""
+    try:
+        # 获取基础信息
+        name = request.data.get('name')
+        role_ids = request.data.get('roles', [])
+        fields = request.data.get('fields', [])
+
+        if not name:
+            return Response({'success': False, 'message': '模型名称不能为空'}, status=400)
+
+        # 创建模型配置
+        model = ModelLowCode.objects.create(
+            name=name,
+            table_name=f'lowcode_{name.lower()}'
+        )
+        # 关联角色
+        if role_ids:
+            model.roles.set(role_ids)
+
+        # 创建字段配置
+        for field in fields:
+            if not field.get('name'):
+                continue
+            FieldModel.objects.create(
+                model_config=model,
+                name=field.get('name'),
+                label=field.get('label', ''),
+                type=field.get('type', 'char'),
+                required=field.get('required', False),
+                options=field.get('options', ''),
+                help_text=field.get('help_text', ''),
+                order=field.get('order', 0)
+            )
+
+        # 生成数据库表（调用动态模型工厂方法）
+        from .models.dynamic_model_factory import create_dynamic_model_table
+        create_dynamic_model_table(model.name)
+
+        return Response({
+            'success': True,
+            'message': f'模型 {name} 创建成功',
+            'data': {'model_id': model.id, 'table_name': model.table_name}
+        })
+    except Exception as e:
+        return Response({'success': False, 'message': str(e)}, status=500)
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def get_role_list_api(request):
+    """获取角色列表API"""
+    roles = Role.objects.all().values('id', 'name', 'code')
+    return Response({'success': True, 'data': list(roles)})
+
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def check_table_exists_api(request):
+    """检测数据表是否存在API"""
+    table_name = request.query_params.get('table_name')
+    if not table_name:
+        return Response({'success': False, 'message': '表名不能为空'}, status=400)
+
+    with connection.cursor() as cursor:
+        vendor = connection.vendor
+        if vendor == 'postgresql':
+            cursor.execute("SELECT to_regclass(%s)", [table_name])
+            exists = cursor.fetchone()[0] is not None
+        elif vendor in ('mysql', 'mariadb'):
+            db_name = connection.settings_dict['NAME']
+            cursor.execute(
+                "SELECT 1 FROM information_schema.tables WHERE table_schema = %s AND table_name = %s",
+                [db_name, table_name]
+            )
+            exists = cursor.fetchone() is not None
+        else:  # SQLite
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=%s;", [table_name])
+            exists = cursor.fetchone() is not None
+
+    return Response({'success': True, 'data': exists})

@@ -4,11 +4,23 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6d04ab10-c5f0-4d0c-a31a-e891562065db" name="更改" comment="修改版本信息" />
+    <list default="true" id="6d04ab10-c5f0-4d0c-a31a-e891562065db" name="更改" comment="修改版本信息">
+      <change afterPath="$PROJECT_DIR$/LowCode/templates/LowCode/model-create.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Icent_LowCode/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/Icent_LowCode/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LowCode/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/LowCode/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lowcode/dynamic_model_registry.py" beforeDir="false" afterPath="$PROJECT_DIR$/lowcode/dynamic_model_registry.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lowcode/templates/lowcode/model_list.html" beforeDir="false" afterPath="$PROJECT_DIR$/lowcode/templates/lowcode/model_list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lowcode/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/lowcode/urls.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="DjangoConsoleOptions" custom-start-script="import sys; print('Python %s on %s' % (sys.version, sys.platform))&#10;import django; print('Django %s' % django.get_version())&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;if 'setup' in dir(django): django.setup()&#10;import django_manage_shell; django_manage_shell.run(PROJECT_ROOT)">
+    <option name="myCustomStartScript" value="import sys; print('Python %s on %s' % (sys.version, sys.platform))&#10;import django; print('Django %s' % django.get_version())&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;if 'setup' in dir(django): django.setup()&#10;import django_manage_shell; django_manage_shell.run(PROJECT_ROOT)" />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -16,8 +28,8 @@
         <option value="CSS File" />
         <option value="HTTP Request" />
         <option value="Python Unit Test" />
-        <option value="HTML File" />
         <option value="Python Script" />
+        <option value="HTML File" />
       </list>
     </option>
   </component>
@@ -72,6 +84,7 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "configurable.group.appearance",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -156,7 +169,7 @@
       <workItem from="1765295861332" duration="17959000" />
       <workItem from="1765454198188" duration="4923000" />
       <workItem from="1765459468354" duration="2785000" />
-      <workItem from="1765463848925" duration="1526000" />
+      <workItem from="1765463848925" duration="15430000" />
     </task>
     <task id="LOCAL-00001" summary="初始版本">
       <option name="closed" value="true" />
@@ -310,7 +323,15 @@
       <option name="project" value="LOCAL" />
       <updated>1765465412261</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="修改版本信息">
+      <option name="closed" value="true" />
+      <created>1765465445330</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1765465445330</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

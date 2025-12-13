@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Third-party
+    'corsheaders',  # 新增
     'rest_framework',
     'rest_framework.authtoken',
     'django_celery_results',
@@ -83,6 +84,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # 新增（放在最前面）
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -92,6 +94,15 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
 ]
+
+# 允许的跨域源（Vue项目地址）
+CORS_ALLOWED_ORIGINS = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+]
+
+# 允许携带Cookie（适配CSRF Token）
+CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = 'Icent_LowCode.urls'
 

@@ -12,6 +12,7 @@ from django.shortcuts import render
 from . import views
 import datetime
 import os
+from . import views
 
 app_name = 'lowcode'  # 严格统一命名空间，全项目复用
 
@@ -199,6 +200,11 @@ urlpatterns = [
     path('api/v1/', include(api_urlpatterns)),
     path('api/', RedirectView.as_view(pattern_name='lowcode:api-root'), name='api-redirect'),
     path('api/v1/', RedirectView.as_view(pattern_name='lowcode:api-root'), name='api-v1-redirect'),
+
+    # 新增API路由
+    path('api/model/create/', views.create_model_api, name='api-model-create'),
+    path('api/role/list/', views.get_role_list_api, name='api-role-list'),
+    path('api/table/check/', views.check_table_exists_api, name='api-table-check'),
 ]
 
 
@@ -213,6 +219,14 @@ if hasattr(views, 'dashboard_view'):
         path('system/dashboard/',
              permission_classes([IsAuthenticated])(api_view(['GET'])(views.dashboard_view)),
              name='dashboard')
+    )
+path('models/create/', views.model_create_view, name='model-create'),
+
+if hasattr(views, 'model_create_view'):
+    system_routes.append(
+        path('system/model-create/',
+             permission_classes([IsAdminUser])(api_view(['GET'])(views.model_create_view)),
+             name='model-create')
     )
 if hasattr(views, 'model_upgrade_view'):
     system_routes.append(
