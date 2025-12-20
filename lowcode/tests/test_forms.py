@@ -1,13 +1,13 @@
 # tests/test_forms.py
 from django.test import TestCase
-from your_app.models import ModelLowCode
-from your_app.forms import ModelLowCodeForm
+from your_app.models import LowCodeModelConfig
+from your_app.forms import LowCodeModelConfigForm
 
 
-class ModelLowCodeFormTest(TestCase):
+class LowCodeModelConfigFormTest(TestCase):
     def setUp(self):
         # 创建一个已有模型用于编辑测试
-        self.existing = ModelLowCode.objects.create(
+        self.existing = LowCodeModelConfig.objects.create(
             name='UserGroup',
             table_name='lowcode_usergroup',
             fields='[{"name":"title","type":"CharField","kwargs":{"max_length":100}}]'
@@ -24,13 +24,13 @@ class ModelLowCodeFormTest(TestCase):
                 ]
             '''
         }
-        form = ModelLowCodeForm(data=data)
+        form = LowCodeModelConfigForm(data=data)
         self.assertTrue(form.is_valid())
         self.assertEqual(form.cleaned_data['table_name'], 'lowcode_product')
 
     def test_duplicate_model_name(self):
         data = {'name': 'UserGroup', 'table_name': '', 'fields': '[{"name":"x","type":"CharField","kwargs":{"max_length":10}}]'}
-        form = ModelLowCodeForm(data=data)
+        form = LowCodeModelConfigForm(data=data)
         self.assertFalse(form.is_valid())
         self.assertIn('模型名称"UserGroup"已存在', str(form.errors))
 
@@ -40,7 +40,7 @@ class ModelLowCodeFormTest(TestCase):
             'table_name': 'lowcode_usergroup',
             'fields': '[{"name":"title","type":"CharField","kwargs":{"max_length":150}}]'
         }
-        form = ModelLowCodeForm(data=data, instance=self.existing)
+        form = LowCodeModelConfigForm(data=data, instance=self.existing)
         self.assertTrue(form.is_valid())
 
     def test_invalid_field_config_missing_max_length(self):
@@ -48,7 +48,7 @@ class ModelLowCodeFormTest(TestCase):
             'name': 'TestModel',
             'fields': '[{"name": "name", "type": "CharField", "kwargs": {}}]'
         }
-        form = ModelLowCodeForm(data=data)
+        form = LowCodeModelConfigForm(data=data)
         self.assertFalse(form.is_valid())
         self.assertIn('必须指定 max_length', str(form.errors))
 
@@ -57,6 +57,6 @@ class ModelLowCodeFormTest(TestCase):
             'name': 'TestModel',
             'fields': '{"not": "an array"}'
         }
-        form = ModelLowCodeForm(data=data)
+        form = LowCodeModelConfigForm(data=data)
         self.assertFalse(form.is_valid())
         self.assertIn('必须是JSON数组格式', str(form.errors))

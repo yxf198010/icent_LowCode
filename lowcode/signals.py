@@ -3,7 +3,7 @@
 低代码平台信号处理器。
 
 功能：
-1. 开发环境：监听 ModelLowCode 变更，自动 makemigrations + migrate；
+1. 开发环境：监听 LowCodeModelConfig 变更，自动 makemigrations + migrate；
 2. 生产环境：发送异步任务 async_refresh_and_create_table 创建/更新表；
 3. 删除模型时同样处理；
 4. 为 staff 用户自动创建 DRF Token；
@@ -22,7 +22,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 
-from .models import ModelLowCode
+from .models import LowCodeModelConfig
 from .models.dynamic_model_factory import refresh_dynamic_methods
 from .tasks import async_refresh_and_create_table
 
@@ -76,11 +76,11 @@ def _has_structure_changed(instance) -> bool:
         return True  # 新建模型总是需要处理
 
     try:
-        old = ModelLowCode.objects.get(pk=instance.pk)
+        old = LowCodeModelConfig.objects.get(pk=instance.pk)
         return (
             old.fields != instance.fields
             or old.table_name != instance.table_name
             or old.name != instance.name
         )
-    except ModelLowCode.DoesNotExist:
+    except LowCodeModelConfig.DoesNotExist:
         return True

@@ -1,0 +1,15 @@
+<!-- templates/lowcode/model_confirm_delete.html -->
+{% extends "lowcode/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>确认删除模型</h2>
+    <p class="text-danger">您即将永久删除模型 <strong>{{ model_name }}</strong> 及其所有数据、字段和数据库表。此操作不可恢复！</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">确认删除</button>
+        <a href="{% url 'lowcode:model-list' %}" class="btn btn-secondary">取消</a>
+    </form>
+</div>
+{% endblock %}

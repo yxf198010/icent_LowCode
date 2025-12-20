@@ -16,7 +16,7 @@ from django.core.management import call_command
 from django.apps import apps
 from celery import shared_task
 
-from .models import LowCodeMethodCallLog, ModelLowCode, ModelUpgradeRecord
+from .models import LowCodeMethodCallLog, LowCodeModelConfig, ModelUpgradeRecord
 from lowcode.io.excel import generate_method_log_excel
 from .models.dynamic_model_factory import get_dynamic_model, refresh_dynamic_model
 from .core.ddl_executor import create_table_if_not_exists
@@ -117,11 +117,11 @@ def async_export_method_log(self, filter_params: dict):
 @shared_task(bind=True, max_retries=3)
 def async_refresh_and_create_table(self, model_config_id: int):
     """
-    异步任务：根据 ModelLowCode 配置创建/更新数据库表，并刷新动态模型缓存。
+    异步任务：根据 LowCodeModelConfig 配置创建/更新数据库表，并刷新动态模型缓存。
     """
     try:
         logger.info(f"[OK] [Refresh Table Task] Starting for model_config_id={model_config_id}")
-        model_config = ModelLowCode.objects.get(id=model_config_id)
+        model_config = LowCodeModelConfig.objects.get(id=model_config_id)
 
         dynamic_model_class = get_dynamic_model(model_config)
         create_table_if_not_exists(dynamic_model_class)
@@ -130,7 +130,7 @@ def async_refresh_and_create_table(self, model_config_id: int):
         logger.info(f"[OK] 成功刷新模型 {model_config.name} (ID={model_config_id})")
         return f"Success: {model_config.name}"
 
-    except ModelLowCode.DoesNotExist:
+    except LowCodeModelConfig.DoesNotExist:
         msg = f"[WARNING] 模型配置 ID={model_config_id} 不存在"
         logger.warning(msg)
         return msg

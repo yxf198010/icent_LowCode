@@ -32,7 +32,7 @@ def get_model_safely(app_label: str, model_name: str) -> Optional[models.Model]:
 
 
 # 懒加载模型
-ModelLowCode = get_model_safely("lowcode", "ModelLowCode")
+LowCodeModelConfig = get_model_safely("lowcode", "LowCodeModelConfig")
 FieldModel = get_model_safely("lowcode", "FieldModel")
 MethodLowCode = get_model_safely("lowcode", "MethodLowCode")
 Document = get_model_safely("lowcode", "Document")
@@ -142,8 +142,8 @@ class FieldModelInline(admin.TabularInline):
 
 
 # ========== 动态模型配置 Admin ==========
-@admin.register(ModelLowCode) if ModelLowCode else None
-class ModelLowCodeAdmin(admin.ModelAdmin):
+@admin.register(LowCodeModelConfig) if LowCodeModelConfig else None
+class LowCodeModelConfigAdmin(admin.ModelAdmin):
     """动态模型配置Admin管理类"""
     list_display = [
         'id', 'model_name_link', 'table_name', 'fields_preview',
@@ -171,7 +171,7 @@ class ModelLowCodeAdmin(admin.ModelAdmin):
     )
 
     # ========== 自定义列表显示字段 ==========
-    def model_name_link(self, obj: ModelLowCode) -> str:
+    def model_name_link(self, obj: LowCodeModelConfig) -> str:
         """生成模型名称链接，优化样式"""
         edit_url = AdminUtils.get_model_admin_url(obj)
         return format_html(
@@ -183,7 +183,7 @@ class ModelLowCodeAdmin(admin.ModelAdmin):
     model_name_link.short_description = '模型名称'
     model_name_link.admin_order_field = 'name'
 
-    def fields_preview(self, obj: ModelLowCode) -> str:
+    def fields_preview(self, obj: LowCodeModelConfig) -> str:
         """优化字段预览，减少数据库查询"""
         # 优化：使用prefetch_related减少查询次数
         try:
@@ -217,7 +217,7 @@ class ModelLowCodeAdmin(admin.ModelAdmin):
 
     fields_preview.short_description = "字段配置预览"
 
-    def table_status_display(self, obj: ModelLowCode) -> str:
+    def table_status_display(self, obj: LowCodeModelConfig) -> str:
         """优化数据表状态显示样式"""
         exists = AdminUtils.is_table_exists(obj.table_name)
         color, text = ("#198754", "✅ 已创建") if exists else ("#dc3545", "❌ 未创建")
@@ -231,7 +231,7 @@ class ModelLowCodeAdmin(admin.ModelAdmin):
     table_status_display.short_description = "数据表状态"
     table_status_display.admin_order_field = 'table_name'
 
-    def go_to_model(self, obj: ModelLowCode) -> str:
+    def go_to_model(self, obj: LowCodeModelConfig) -> str:
         """优化模型跳转链接，增强校验"""
         if not obj.name:
             return format_html('<span style="color: #6c757d;">无效模型名</span>')
@@ -251,13 +251,13 @@ class ModelLowCodeAdmin(admin.ModelAdmin):
 
     go_to_model.short_description = "操作"
 
-    def formatted_create_time(self, obj: ModelLowCode) -> str:
+    def formatted_create_time(self, obj: LowCodeModelConfig) -> str:
         return AdminUtils.format_datetime(obj.create_time)
 
     formatted_create_time.short_description = "创建时间"
     formatted_create_time.admin_order_field = 'create_time'
 
-    def formatted_update_time(self, obj: ModelLowCode) -> str:
+    def formatted_update_time(self, obj: LowCodeModelConfig) -> str:
         return AdminUtils.format_datetime(obj.update_time)
 
     formatted_update_time.short_description = "更新时间"

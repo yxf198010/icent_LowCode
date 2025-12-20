@@ -1,6 +1,7 @@
 from django.urls import path, include
 from django.views.generic import RedirectView
 from django.views.static import serve
+from django.http import Http404
 from rest_framework.routers import DefaultRouter
 from rest_framework.permissions import (
     IsAuthenticated, IsAdminUser, BasePermission, SAFE_METHODS
@@ -9,10 +10,13 @@ from rest_framework.decorators import permission_classes, api_view
 from rest_framework.response import Response
 from django.conf import settings
 from django.shortcuts import render
-from . import views
 import datetime
 import os
+import django  # 用于获取 Django 版本
+
 from . import views
+from .views.utils import get_csrf_token  # 已导入
+from .views.dynamic_model import check_model_name_api, model_delete_view, model_delete
 
 app_name = 'lowcode'  # 严格统一命名空间，全项目复用
 
@@ -44,13 +48,14 @@ class IsDataOwnerOrAdmin(BasePermission):
     - 未登录用户：无权限
     """
 
+    def has_permission(self, request, view):
+        # 允许认证用户访问视图（如 list / create）
+        return request.user and request.user.is_authenticated
+
     def has_object_permission(self, request, view, obj):
         if request.user.is_staff:
             return True
-        try:
-            return hasattr(obj, 'created_by') and obj.created_by == request.user
-        except Exception:
-            return False
+        return hasattr(obj, 'created_by') and obj.created_by == request.user
 
 
 # ==============================
@@ -75,12 +80,18 @@ class DesignerView(View):
 # ==============================
 # favicon.ico 访问视图（适配前端图标）
 # ==============================
+from django.contrib.staticfiles import finders
+
+
 def favicon_view(request):
     """提供 favicon.ico 静态文件访问"""
-    # 注意：Vite 构建后，favicon 通常被复制到 assets/ 目录下
-    favicon_path = 'lowcode_designer/assets/favicon.ico'
-    document_root = settings.STATICFILES_DIRS[0] if settings.DEBUG else settings.STATIC_ROOT
-    return serve(request, favicon_path, document_root=document_root)
+    full_path = finders.find('lowcode_designer/assets/favicon.ico')
+    if not full_path:
+        raise Http404("Favicon not found")
+
+    document_root = os.path.dirname(full_path)
+    filename = os.path.basename(full_path)
+    return serve(request, filename, document_root=document_root)
 
 
 # ==============================
@@ -103,7 +114,6 @@ if hasattr(views, 'DataPermissionViewSet'):
         permission_viewset,
         basename="data-permission"
     )
-
 
 # ==============================
 # API 子路由分组
@@ -153,20 +163,19 @@ if hasattr(views, 'DownloadExportView'):
              name="download-export")
     )
 
-# 工具API
+# 工具API（仅保留 API 版本，避免重复）
 if hasattr(views, 'refresh_methods'):
     api_urlpatterns.append(
         path("tools/refresh-methods/",
              permission_classes([IsAdminUser])(api_view(['POST'])(views.refresh_methods)),
-             name="refresh-dynamic-methods")
+             name="refresh-dynamic-methods")  # 注意：名称是 refresh-dynamic-methods
     )
-
 
 # ==============================
 # 主URL配置
 # ==============================
 urlpatterns = [
-    # LowcodeDesigner 核心路由（使用新 DesignerView）
+    # LowcodeDesigner 核心路由
     path('favicon.ico', favicon_view, name='favicon'),
     path('designer/', DesignerView.as_view(), name='lowcode_designer'),
     path('designer/<path:path>', DesignerView.as_view()),  # history 模式支持
@@ -176,7 +185,7 @@ urlpatterns = [
     path('home/', RedirectView.as_view(pattern_name='lowcode:index'), name='home-redirect'),
     path('index/', RedirectView.as_view(pattern_name='lowcode:index'), name='index-redirect'),
 
-    # 动态模型管理
+    # 动态模型管理（注意：create 路由已移至 system_routes）
     path('models/',
          permission_classes([IsModelAdminOrReadOnly])(api_view(['GET'])(views.model_list_view)),
          name='model-list'),
@@ -193,7 +202,7 @@ urlpatterns = [
          permission_classes([IsDataOwnerOrAdmin])(views.DynamicModelUpdateView.as_view()),
          name='dynamic-model-update'),
     path('models/<str:model_name>/<int:pk>/delete/',
-         permission_classes([IsDataOwnerOrAdmin | IsAdminUser])(views.DynamicModelDeleteView.as_view()),
+         permission_classes([IsDataOwnerOrAdmin])(views.DynamicModelDeleteView.as_view()),
          name='dynamic-model-delete'),
 
     # API
@@ -201,12 +210,22 @@ urlpatterns = [
     path('api/', RedirectView.as_view(pattern_name='lowcode:api-root'), name='api-redirect'),
     path('api/v1/', RedirectView.as_view(pattern_name='lowcode:api-root'), name='api-v1-redirect'),
 
-    # 新增API路由
+    # ✅ 新增：CSRF Token 获取接口（无权限限制！）
+    path('api/csrf/', get_csrf_token, name='csrf-token'),
+
+    # 其他独立 API 路由（非 DRF ViewSet）
     path('api/model/create/', views.create_model_api, name='api-model-create'),
     path('api/role/list/', views.get_role_list_api, name='api-role-list'),
     path('api/table/check/', views.check_table_exists_api, name='api-table-check'),
-]
 
+    path('api/check-model-name/', check_model_name_api, name='check-model-name'),
+
+    # ✅ 修复：删除模型路由（严格匹配）
+    # 正确写法（使用正则约束，避免空值）：
+    path('system/model-delete/<slug:model_name>/',
+         permission_classes([IsAdminUser])(model_delete),
+         name='model-delete'),
+]
 
 # ==============================
 # 系统管理 & 工具 & 演示（条件路由）
@@ -220,20 +239,24 @@ if hasattr(views, 'dashboard_view'):
              permission_classes([IsAuthenticated])(api_view(['GET'])(views.dashboard_view)),
              name='dashboard')
     )
-path('models/create/', views.model_create_view, name='model-create'),
 
+# ✅ 关键修复：允许 GET 和 POST 方法
 if hasattr(views, 'model_create_view'):
     system_routes.append(
         path('system/model-create/',
-             permission_classes([IsAdminUser])(api_view(['GET'])(views.model_create_view)),
+             permission_classes([IsAdminUser])(
+                 api_view(['GET', 'POST'])(views.model_create_view)  # ← 允许 POST
+             ),
              name='model-create')
     )
+
 if hasattr(views, 'model_upgrade_view'):
     system_routes.append(
         path('system/model-upgrade/',
              permission_classes([IsAdminUser])(api_view(['GET'])(views.model_upgrade_view)),
              name='model-upgrade')
     )
+
 if hasattr(views, 'prometheus_metrics'):
     system_routes.append(
         path('system/metrics/',
@@ -242,12 +265,6 @@ if hasattr(views, 'prometheus_metrics'):
     )
 
 # 工具功能
-if hasattr(views, 'refresh_methods'):
-    system_routes.append(
-        path('tools/refresh-methods/',
-             permission_classes([IsAdminUser])(api_view(['POST'])(views.refresh_methods)),
-             name='refresh-methods')
-    )
 if hasattr(views, 'call_dynamic_method'):
     system_routes.append(
         path('tools/models/<str:model_name>/<int:instance_id>/methods/<str:method_name>/call/',
@@ -271,13 +288,13 @@ if hasattr(views, 'get_lowcode_user_detail'):
 
 urlpatterns.extend(system_routes)
 
-
 # ==============================
 # 补充配置
 # ==============================
 # 确保 APIRootView 存在
 if not hasattr(views, 'APIRootView'):
     from rest_framework.views import APIView
+
 
     class APIRootView(APIView):
         permission_classes = [IsAuthenticated]
@@ -299,19 +316,8 @@ if not hasattr(views, 'APIRootView'):
                 "contact": "技术支持：admin@example.com"
             })
 
+
     setattr(views, 'APIRootView', APIRootView)
-
-
-# 自定义错误页面
-if hasattr(views, 'custom_404_view'):
-    handler404 = 'lowcode.views.custom_404_view'
-else:
-    handler404 = 'django.views.defaults.page_not_found'
-
-if hasattr(views, 'custom_500_view'):
-    handler500 = 'lowcode.views.custom_500_view'
-else:
-    handler500 = 'django.views.defaults.server_error'
 
 
 # 健康检查
@@ -322,7 +328,7 @@ def api_health_check(request):
         "status": "healthy",
         "service": "dynamic-model-system",
         "api_version": "v1",
-        "django_version": settings.django_version,
+        "django_version": django.get_version(),
         "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "environment": getattr(settings, 'ENVIRONMENT', "production")
     })
@@ -335,7 +341,6 @@ health_route_exists = any(
 )
 if not health_route_exists:
     urlpatterns.append(path('api/v1/health/', api_health_check, name='api-health-check'))
-
 
 # ==============================
 # 开发环境专属配置
@@ -354,6 +359,12 @@ if settings.DEBUG:
             for route in urlpatterns
         )
 
+        # 新增：检查删除模型路由是否存在
+        delete_route_exists = any(
+            hasattr(route, 'name') and route.name == 'model-delete'
+            for route in urlpatterns
+        )
+
         return Response({
             "debug_mode": True,
             "registered_views": {
@@ -361,11 +372,15 @@ if settings.DEBUG:
                 "data_permission_viewset": hasattr(views, 'DataPermissionViewSet'),
                 "batch_data_permission_view": hasattr(views, 'BatchDataPermissionView'),
                 "method_log_export_view": hasattr(views, 'MethodLogExportView'),
-                "lowcode_designer_view": True  # 现在使用 DesignerView，始终存在
+                "lowcode_designer_view": True,
+                "model_delete_view": hasattr(views, 'model_delete'),
+                "delete_route_exists": delete_route_exists
             },
             "api_routes": api_routes,
-            "designer_route": "designer/" if designer_route_exists else "missing"
+            "designer_route": "designer/" if designer_route_exists else "missing",
+            "delete_model_route": "system/model-delete/<str:model_name>/" if delete_route_exists else "missing",
+            "namespace": app_name
         })
 
-    urlpatterns.append(path('api/v1/debug/', api_debug_info, name='api-debug-info'))
 
+    urlpatterns.append(path('api/v1/debug/', api_debug_info, name='api-debug-info'))

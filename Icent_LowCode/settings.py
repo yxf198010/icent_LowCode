@@ -399,3 +399,16 @@ VITE_DEV_SERVER_URL = 'http://localhost:5173'
 
 # 手动定义变量
 django_version = django.get_version()
+
+# 低代码平台初始化配置
+# 显式跳过初始化（如维护模式）
+SKIP_DYNAMIC_MODEL_INIT = False
+
+# 扩展需跳过的管理命令
+LOWCODE_SKIP_INIT_COMMANDS = {"export_data", "import_data"}
+
+# 自定义初始化钩子（初始化完成后执行）
+LOWCODE_POST_INIT_HOOKS = [
+    "lowcode.hooks.post_init_hook1",
+    "lowcode.hooks.post_init_hook2",
+]

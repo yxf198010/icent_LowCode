@@ -1,7 +1,7 @@
 # lowcode/forms.py
 from django import forms
 from django.core.exceptions import ValidationError
-from lowcode.models.models import ModelLowCode
+from lowcode.models.models import LowCodeModelConfig
 from .utils.validators import (
     validate_model_name,
     validate_table_name_format,
@@ -14,9 +14,9 @@ from .utils.model_naming import (
 )
 
 
-class ModelLowCodeForm(forms.ModelForm):
+class LowCodeModelConfigForm(forms.ModelForm):
     class Meta:
-        model = ModelLowCode
+        model = LowCodeModelConfig
         fields = ['name', 'table_name']
         widgets = {
             'name': forms.TextInput(attrs={
@@ -80,3 +80,34 @@ class ModelLowCodeForm(forms.ModelForm):
             raise ValidationError("必须先设置模型名称才能指定表名")
 
         return cleaned_data
+
+# ========== 在此处添加 FieldForm ==========
+class FieldForm(forms.Form):
+    name = forms.CharField(
+        max_length=100,
+        validators=[
+            lambda x: re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', x) or ValidationError('字段名称必须是合法Python标识符')
+        ],
+        error_messages={'required': '字段名称不能为空'}
+    )
+    type = forms.ChoiceField(
+        choices=[
+            ('char', '字符串 (CHAR)'),
+            ('varchar', '变长字符串 (VARCHAR)'),
+            ('int', '整数 (INT)'),
+            ('bigint', '长整数 (BIGINT)'),
+            ('decimal', '小数 (DECIMAL)'),
+            ('text', '文本 (TEXT)'),
+            ('datetime', '日期时间 (DATETIME)'),
+            ('boolean', '布尔 (BOOLEAN)'),
+        ],
+        error_messages={'required': '字段类型不能为空'}
+    )
+    length = forms.IntegerField(
+        required=False,
+        min_value=1,
+        error_messages={'min_value': '长度必须为正整数'}
+    )
+    required = forms.BooleanField(required=False)
+    default = forms.CharField(required=False)
+    comment = forms.CharField(required=False)

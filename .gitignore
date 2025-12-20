@@ -1,0 +1,21 @@
+# Django 默认忽略规则
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+static/
+
+# LowCode 动态模型配置（核心忽略规则）
+dynamic_models.json
+lowcode/dynamic_models.json
+config/dynamic_models.json
+# 忽略配置备份
+dynamic_models.*.bak
+lowcode/dynamic_models.*.bak
+# 保留示例模板
+!dynamic_models.example.json
+!lowcode/dynamic_models.example.json

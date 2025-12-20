@@ -4,8 +4,34 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6d04ab10-c5f0-4d0c-a31a-e891562065db" name="更改" comment="添加模型優化">
+    <list default="true" id="6d04ab10-c5f0-4d0c-a31a-e891562065db" name="更改" comment="动态模型配置表添加，同时新增表&#10;动态模型配置表删除，同时删除表">
+      <change afterPath="$PROJECT_DIR$/LowCode/views/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/LowCode/views/dynamic_model.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/LowCode/views/utils.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/LowCode/views/views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Icent_LowCode/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/Icent_LowCode/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Icent_LowCode/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/Icent_LowCode/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LowCode/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/LowCode/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LowCode/apps.py" beforeDir="false" afterPath="$PROJECT_DIR$/LowCode/apps.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LowCode/models/dynamic_model_factory.py" beforeDir="false" afterPath="$PROJECT_DIR$/LowCode/models/dynamic_model_factory.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LowCode/models/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/LowCode/models/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LowCode/templates/LowCode/model-create.html" beforeDir="false" afterPath="$PROJECT_DIR$/LowCode/templates/LowCode/model-create.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LowCode/utils/model_naming.py" beforeDir="false" afterPath="$PROJECT_DIR$/LowCode/utils/model_naming.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LowCode/views.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lowcode/dynamic_model_registry.py" beforeDir="false" afterPath="$PROJECT_DIR$/lowcode/dynamic_model_registry.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lowcode/forms.py" beforeDir="false" afterPath="$PROJECT_DIR$/lowcode/forms.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lowcode/models/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/lowcode/models/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lowcode/services/services.py" beforeDir="false" afterPath="$PROJECT_DIR$/lowcode/services/services.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lowcode/signals.py" beforeDir="false" afterPath="$PROJECT_DIR$/lowcode/signals.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lowcode/tasks.py" beforeDir="false" afterPath="$PROJECT_DIR$/lowcode/tasks.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lowcode/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/lowcode/templates/base.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lowcode/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/lowcode/templates/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lowcode/templates/lowcode/model_list.html" beforeDir="false" afterPath="$PROJECT_DIR$/lowcode/templates/lowcode/model_list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lowcode/tests/test_forms.py" beforeDir="false" afterPath="$PROJECT_DIR$/lowcode/tests/test_forms.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lowcode/tests/test_utils/test_model_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/lowcode/tests/test_utils/test_model_utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lowcode/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/lowcode/urls.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -83,11 +109,11 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\source\Icent_LowCode\lowcode\views" />
       <recent name="C:\source\Icent_LowCode\lowcode\io" />
       <recent name="C:\source\Icent_LowCode\utils" />
       <recent name="C:\source\Icent_LowCode\Icent_LowCode" />
       <recent name="C:\source\Icent_LowCode\lowcode\demo" />
-      <recent name="C:\source\Icent_LowCode\lowcode\utils" />
     </key>
   </component>
   <component name="RunManager" selected="Django 服务器.icent_LowCode">
@@ -163,7 +189,12 @@
       <workItem from="1765454198188" duration="4923000" />
       <workItem from="1765459468354" duration="2785000" />
       <workItem from="1765463848925" duration="15713000" />
-      <workItem from="1765613827577" duration="481000" />
+      <workItem from="1765613827577" duration="11091000" />
+      <workItem from="1765809898142" duration="7733000" />
+      <workItem from="1765892592717" duration="781000" />
+      <workItem from="1765893766544" duration="9979000" />
+      <workItem from="1765975610739" duration="37646000" />
+      <workItem from="1766233759774" duration="591000" />
     </task>
     <task id="LOCAL-00001" summary="初始版本">
       <option name="closed" value="true" />
@@ -333,7 +364,15 @@
       <option name="project" value="LOCAL" />
       <updated>1765613289709</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="添加模型優化">
+      <option name="closed" value="true" />
+      <created>1765614325973</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1765614325974</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -366,7 +405,8 @@
     <MESSAGE value="前台界面优化" />
     <MESSAGE value="修改版本信息" />
     <MESSAGE value="添加模型優化" />
-    <option name="LAST_COMMIT_MESSAGE" value="添加模型優化" />
+    <MESSAGE value="动态模型配置表添加，同时新增表&#10;动态模型配置表删除，同时删除表" />
+    <option name="LAST_COMMIT_MESSAGE" value="动态模型配置表添加，同时新增表&#10;动态模型配置表删除，同时删除表" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -7,7 +7,7 @@ from django.apps import apps
 from django.db import connection, transaction
 from django.db import models
 
-from lowcode.models import ModelLowCode
+from lowcode.models import LowCodeModelConfig
 from lowcode.utils.naming import is_valid_python_class_name, is_valid_field_name
 from lowcode.utils.json_utils import parse_json_array
 
@@ -53,7 +53,7 @@ def create_or_update_lowcode_model(
     fields_config: str,
     table_name: Optional[str] = None,
     instance_id: Optional[int] = None
-) -> ModelLowCode:
+) -> LowCodeModelConfig:
     """
     创建或更新一个低代码模型元数据记录，并尝试注册为运行时模型（仅限当前进程）
 
@@ -64,9 +64,9 @@ def create_or_update_lowcode_model(
         instance_id: 若提供，则为更新操作
 
     Returns:
-        ModelLowCode 实例
+        LowCodeModelConfig 实例
     """
-    from ..forms import ModelLowCodeForm  # 避免循环导入
+    from ..forms import LowCodeModelConfigForm  # 避免循环导入
 
     form_data = {
         'name': name.strip(),
@@ -77,11 +77,11 @@ def create_or_update_lowcode_model(
     instance = None
     if instance_id:
         try:
-            instance = ModelLowCode.objects.get(id=instance_id)
-        except ModelLowCode.DoesNotExist:
+            instance = LowCodeModelConfig.objects.get(id=instance_id)
+        except LowCodeModelConfig.DoesNotExist:
             raise ValueError(f"ID 为 {instance_id} 的模型不存在")
 
-    form = ModelLowCodeForm(form_data, instance=instance)
+    form = LowCodeModelConfigForm(form_data, instance=instance)
 
     if not form.is_valid():
         error_messages = [
@@ -111,9 +111,9 @@ def create_or_update_lowcode_model(
     return model_instance
 
 
-def register_dynamic_model(model_meta: ModelLowCode):
+def register_dynamic_model(model_meta: LowCodeModelConfig):
     """
-    （实验性）将 ModelLowCode 实例动态注册为可用的 Django 模型类
+    （实验性）将 LowCodeModelConfig 实例动态注册为可用的 Django 模型类
     注意：此模型不会出现在 migrations 中，仅在当前进程内存中有效
     """
     app_label = model_meta._meta.app_label
@@ -166,12 +166,15 @@ def register_dynamic_model(model_meta: ModelLowCode):
         else:
             model_fields[name] = field_class(**kwargs)
 
-    # 继承自 models.Model，而非 ModelLowCode
+    # 继承自 models.Model，而非 LowCodeModelConfig
     dynamic_model = type(model_name, (models.Model,), model_fields)
 
     # 注册到 apps
     try:
         apps.register_model(app_label, dynamic_model)
+        # 手动创建数据库表
+        with connection.schema_editor() as schema_editor:
+            schema_editor.create_model(dynamic_model)
         logger.debug(f"动态模型 {model_name} 已注册到 app '{app_label}'")
     except RuntimeError as e:
         if "already imported" in str(e):
@@ -182,7 +185,7 @@ def register_dynamic_model(model_meta: ModelLowCode):
     return dynamic_model
 
 
-def ensure_db_table_exists(model_meta: ModelLowCode):
+def ensure_db_table_exists(model_meta: LowCodeModelConfig):
     """
     确保数据库表存在，若不存在则创建（仅支持基础字段类型）
     ⚠️ 警告：直接操作 schema，建议仅用于原型或受控环境

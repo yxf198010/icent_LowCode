@@ -16,10 +16,16 @@ from django.conf.urls.static import static
 from django.views.generic import RedirectView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from health_check.views import MainView
+# 补充缺失的导入：生产环境静态文件服务
+from django.views.static import serve
 
 # 导入视图
 from lowcode.views import index_view, designer_view
-
+from lowcode.views.dynamic_model import (
+    dynamic_model_detail,  # 模型配置详情（函数视图）
+    dynamic_model_data,  # 模型数据列表（函数视图）
+    DynamicModelDetailView  # 模型单条数据详情（类视图）
+)
 
 # ==============================
 # System & Root Routes (non-i18n)
@@ -53,6 +59,15 @@ urlpatterns += [
         designer_view,
         name='lowcode_designer-route'
     ),
+
+    # 🌟 关键修正1：统一参数名为 model_name（与视图函数参数一致）
+    # 模型配置详情（替换原 model_slug 为 model_name）
+    path('lowcode/model/<str:model_name>/', dynamic_model_detail, name='dynamic-model-detail'),
+    # 模型数据列表（替换原 model_slug 为 model_name）
+    path('lowcode/model/<str:model_name>/data/', dynamic_model_data, name='dynamic-model-data'),
+    # 模型单条数据详情（类视图，保持 model_name + pk 参数）
+    path('lowcode/model/<str:model_name>/data/<int:pk>/', DynamicModelDetailView.as_view(),
+         name='dynamic-model-data-detail'),
 ]
 
 # ==============================
@@ -66,7 +81,6 @@ urlpatterns += [
     path('api/lowcode/', RedirectView.as_view(url='/api/v1/', permanent=True), name='lowcode-api-redirect'),
 ]
 
-
 # ==============================
 # Development-only: Media, Static, Debug Toolbar
 # ==============================
@@ -77,8 +91,8 @@ if settings.DEBUG:
 
     if 'debug_toolbar' in settings.INSTALLED_APPS:
         import debug_toolbar
-        urlpatterns.insert(0, path('__debug__/', include(debug_toolbar.urls)))
 
+        urlpatterns.insert(0, path('__debug__/', include(debug_toolbar.urls)))
 
 # ==============================
 # ⚠️ 仅用于本地测试 DEBUG=False 的情况（非生产！）
@@ -87,13 +101,19 @@ if settings.DEBUG:
 # 可临时取消注释以下代码以提供静态文件。
 # 上线时务必删除或注释掉！
 #
-# if not settings.DEBUG:
-#     from django.views.static import serve
-#     urlpatterns += [
-#         re_path(
-#             r'^static/(?P<path>.*)$',
-#             serve,
-#             {'document_root': settings.STATIC_ROOT, 'show_indexes': False},
-#             name='static-files-for-debug-off'
-#         ),
-#     ]
+if not settings.DEBUG:
+    urlpatterns += [
+        re_path(
+            r'^static/(?P<path>.*)$',
+            serve,
+            {'document_root': settings.STATIC_ROOT, 'show_indexes': False},
+            name='static-files-for-debug-off'
+        ),
+        # 补充：生产模式下的媒体文件服务（如需）
+        re_path(
+            r'^media/(?P<path>.*)$',
+            serve,
+            {'document_root': settings.MEDIA_ROOT, 'show_indexes': False},
+            name='media-files-for-debug-off'
+        ),
+    ]

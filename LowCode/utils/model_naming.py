@@ -5,14 +5,14 @@
 """
 
 from typing import Optional
-from lowcode.models.models import ModelLowCode
+from lowcode.models.models import LowCodeModelConfig
 
 
 def is_model_name_unique(name: str, exclude_id: Optional[int] = None) -> bool:
     """
     检查模型名称是否唯一（排除自身）
     """
-    queryset = ModelLowCode.objects.filter(name=name)
+    queryset = LowCodeModelConfig.objects.filter(name=name)
     if exclude_id is not None:
         queryset = queryset.exclude(pk=exclude_id)
     return not queryset.exists()
@@ -22,7 +22,7 @@ def is_table_name_unique(table_name: str, exclude_id: Optional[int] = None) -> b
     """
     检查数据库表名是否唯一（排除自身）
     """
-    queryset = ModelLowCode.objects.filter(table_name=table_name)
+    queryset = LowCodeModelConfig.objects.filter(table_name=table_name)
     if exclude_id is not None:
         queryset = queryset.exclude(pk=exclude_id)
     return not queryset.exists()

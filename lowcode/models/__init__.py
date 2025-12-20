@@ -6,7 +6,7 @@ from .models import (
     LowCodeMethodCallLog,
     DataPermission,
     LowCodeUser,
-    ModelLowCode,
+    LowCodeModelConfig,
     FieldModel,        # 如果有
     MethodLowCode,
 )

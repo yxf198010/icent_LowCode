@@ -175,6 +175,17 @@
         font-size: 0.8125rem;
     }
 
+    .btn-outline-danger {
+        color: #dc2626;
+        border-color: #fecaca;
+    }
+
+    .btn-outline-danger:hover {
+        background-color: #fef2f2;
+        border-color: #fecaca;
+        color: #b91c1c;
+    }
+
     /* 视图切换按钮组 */
     .view-switch-group .btn {
         border-radius: 0.375rem !important;
@@ -490,6 +501,12 @@
         align-items: center;
         gap: 0.25rem;
     }
+
+    /* 危险提示样式 */
+    .danger-highlight {
+        color: #dc2626;
+        font-weight: 600;
+    }
 </style>
 {% endblock %}
 
@@ -667,6 +684,17 @@
                                         <i class="bi bi-pencil" aria-hidden="true"></i>
                                     </a>
                                     {% endif %}
+                                    <!-- 删除按钮 -->
+                                    <button type="button"
+                                            class="btn btn-outline-danger delete-model-btn"
+                                            data-model-name="{{ model.name }}"
+                                            data-table-name="{{ model.table_name }}"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            title="删除模型"
+                                            aria-label="删除模型">
+                                        <i class="bi bi-trash" aria-hidden="true"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -754,6 +782,17 @@
                                 <i class="bi bi-pencil"></i>
                             </a>
                             {% endif %}
+                            <!-- 删除按钮 -->
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger delete-model-btn"
+                                    data-model-name="{{ model.name }}"
+                                    data-table-name="{{ model.table_name }}"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="top"
+                                    title="删除模型"
+                                    aria-label="删除模型">
+                                <i class="bi bi-trash"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -775,7 +814,7 @@
             {% endif %}
         </p>
         {% if not search_keyword %}
-        <a href="{% url 'lowcode:model-upgrade' %}" class="btn btn-primary mt-3">
+        <a href="{% url 'lowcode:model-create' %}" class="btn btn-primary mt-3">
             <i class="bi bi-plus-circle me-1"></i> 新增模型
         </a>
         {% else %}
@@ -792,7 +831,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title h5" id="confirmModalLabel">
-                    <i class="bi bi-exclamation-triangle text-warning me-1"></i>确认操作
+                    <i class="bi bi-exclamation-triangle text-warning me-1"></i>确认删除
                 </h2>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
             </div>
@@ -814,7 +853,7 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // 元素获取
+    // 元素获取 - 增加空值保护
     const listView = document.getElementById('listView');
     const cardView = document.getElementById('cardView');
     const emptyState = document.getElementById('emptyState');
@@ -823,23 +862,41 @@ document.addEventListener('DOMContentLoaded', function () {
     const clearSearchBtn = document.getElementById('clearSearchBtn');
     const refreshCountsBtn = document.getElementById('refreshCountsBtn');
     const loadingOverlay = document.getElementById('loadingOverlay');
-    const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    const confirmModalEl = document.getElementById('confirmModal');
+    const confirmModal = confirmModalEl ? new bootstrap.Modal(confirmModalEl) : null;
     const confirmModalBody = document.getElementById('confirmModalBody');
     const confirmActionBtn = document.getElementById('confirmActionBtn');
     const dataCountBadge = document.querySelector('.data-count-badge');
 
     // 初始化视图：优先从 localStorage 读取，否则默认 list
     let currentView = localStorage.getItem('modelListViewMode') || '{{ current_view|default:"list" }}';
-    showView(currentView);
-
-    // 初始化Bootstrap工具提示
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-    if (tooltipTriggerList.length > 0) {
-        new bootstrap.Tooltip(tooltipTriggerList);
+    if (listView && cardView) {
+        showView(currentView);
     }
 
-    // 切换视图函数
+    // 修复Tooltip初始化 - 逐个初始化，跳过无效元素
+    function initTooltips() {
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        console.log(`找到Tooltip触发器数量：${tooltipTriggerList.length}`);
+
+        tooltipTriggerList.forEach(function (triggerEl) {
+            try {
+                // 检查元素是否有效且在DOM中
+                if (triggerEl && triggerEl.nodeType === 1 && triggerEl.isConnected) {
+                    new bootstrap.Tooltip(triggerEl);
+                }
+            } catch (e) {
+                console.warn("Tooltip初始化失败（跳过）：", e);
+            }
+        });
+    }
+    // 延迟初始化，确保DOM完全渲染
+    setTimeout(initTooltips, 100);
+
+    // 切换视图函数 - 增加空值保护
     function showView(mode) {
+        if (!listView || !cardView) return;
+
         const isList = mode === 'list';
         listView.classList.toggle('d-none', !isList);
         cardView.classList.toggle('d-none', isList);
@@ -857,13 +914,15 @@ document.addEventListener('DOMContentLoaded', function () {
         performSearch(); // 重新应用搜索过滤
     }
 
-    // 绑定视图切换按钮
+    // 绑定视图切换按钮 - 增加空值保护
     document.querySelectorAll('[data-view]').forEach(btn => {
         btn.addEventListener('click', () => showView(btn.dataset.view));
     });
 
-    // 搜索功能
+    // 搜索功能 - 增加空值保护
     function performSearch() {
+        if (!searchInput || !emptyState || !clearSearchBtn) return;
+
         const term = searchInput.value.trim().toLowerCase();
         let visibleCount = 0;
         const totalModels = document.querySelectorAll('.model-row, .model-item').length;
@@ -893,48 +952,59 @@ document.addEventListener('DOMContentLoaded', function () {
         clearSearchBtn.style.display = term ? 'block' : 'none';
 
         // 更新数据计数徽章（搜索状态）
-        if (term && dataCountBadge) {
-            dataCountBadge.innerHTML = `${visibleCount}/${totalModels} 个`;
-        } else if (dataCountBadge) {
-            dataCountBadge.textContent = `${totalModels} 个`;
+        if (dataCountBadge) {
+            if (term) {
+                dataCountBadge.innerHTML = `${visibleCount}/${totalModels} 个`;
+            } else {
+                dataCountBadge.textContent = `${totalModels} 个`;
+            }
         }
     }
 
-    // 搜索按钮点击事件
-    searchBtn.addEventListener('click', performSearch);
-
-    // 清空搜索
-    window.clearSearch = function() {
-        searchInput.value = '';
-        performSearch();
+    // 搜索按钮点击事件 - 增加空值保护
+    if (searchBtn) {
+        searchBtn.addEventListener('click', performSearch);
     }
 
-    clearSearchBtn.addEventListener('click', clearSearch);
+    // 清空搜索 - 增加空值保护
+    window.clearSearch = function() {
+        if (searchInput) {
+            searchInput.value = '';
+            performSearch();
+        }
+    }
 
-    // 输入框回车事件
-    searchInput.addEventListener('keyup', (e) => {
-        if (e.key === 'Enter') performSearch();
-    });
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', clearSearch);
+    }
+
+    // 输入框回车事件 - 增加空值保护
+    if (searchInput) {
+        searchInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') performSearch();
+        });
+    }
 
     // 防抖刷新记录数
     const debouncedRefreshCounts = debounce(refreshRecordCounts, 300);
 
-    // 刷新记录数按钮事件
-    refreshCountsBtn.addEventListener('click', () => {
-        confirmModalBody.textContent = '确定要刷新所有模型的记录数吗？此操作可能需要几秒时间。';
-        confirmActionBtn.onclick = () => {
-            debouncedRefreshCounts();
-            confirmModal.hide();
-        };
-        confirmModal.show();
-    });
+    // 刷新记录数按钮事件 - 增加空值保护
+    if (refreshCountsBtn && confirmModal && confirmModalBody && confirmActionBtn) {
+        refreshCountsBtn.addEventListener('click', () => {
+            confirmModalBody.textContent = '确定要刷新所有模型的记录数吗？此操作可能需要几秒时间。';
+            confirmActionBtn.onclick = () => {
+                debouncedRefreshCounts();
+                confirmModal.hide();
+            };
+            confirmModal.show();
+        });
+    }
 
-    // 刷新记录数函数
+    // 刷新记录数函数 - 增加空值保护
     function refreshRecordCounts() {
         showLoading(true);
 
-        // 模拟AJAX请求（实际项目中替换为真实接口）
-        fetch("{% url 'lowcode:refresh-methods' %}", {
+        fetch("{% url 'lowcode:refresh-dynamic-methods' %}", {
             method: 'GET',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
@@ -946,7 +1016,6 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(data => {
             if (data.code === 200) {
-                // 更新所有计数显示为加载中
                 document.querySelectorAll('.count-value').forEach(el => {
                     el.innerHTML = `
                         <span class="count-loading">
@@ -955,8 +1024,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         </span>
                     `;
                 });
-
-                // 延迟刷新页面，确保缓存更新
                 setTimeout(() => {
                     location.reload();
                 }, 1500);
@@ -973,18 +1040,153 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 显示加载状态
+    // 删除模型逻辑（支持删除表和数据）- 核心修复
+    function bindDeleteButtons() {
+        console.log("===== 开始绑定删除按钮 =====");
+        const deleteButtons = document.querySelectorAll('.delete-model-btn');
+        console.log(`找到删除按钮数量：${deleteButtons.length}`);
+
+        deleteButtons.forEach(btn => {
+            // 先移除原有事件，避免重复绑定
+            btn.removeEventListener('click', handleDeleteClick);
+            btn.addEventListener('click', handleDeleteClick);
+        });
+    }
+
+// 单独的删除点击处理函数 - 便于调试和维护
+function handleDeleteClick() {
+    const modelName = this.dataset.modelName;
+    const tableName = this.dataset.tableName;
+    console.log(`===== 触发删除模型 =====`);
+    console.log(`模型名称：${modelName} | 数据表名：${tableName}`);
+
+    // 空值检查
+    if (!modelName || !confirmModal || !confirmModalBody || !confirmActionBtn) {
+        showToast('操作失败：必要元素未找到', 'error');
+        return;
+    }
+
+    // 确认模态框内容
+    confirmModalBody.innerHTML = `
+        <div class="mb-2">
+            <p class="mb-1">确定要<span class="danger-highlight">永久删除</span>模型 <strong>${modelName}</strong> 吗？</p>
+            <p class="small mb-2 text-muted">数据表名：<code>${tableName || '未知'}</code></p>
+        </div>
+        <div class="alert alert-danger p-2 mb-0 small">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            此操作将：<br>
+            1. 删除模型配置信息<br>
+            2. <strong>删除数据库表及表中所有数据</strong><br>
+            3. 清理相关缓存数据<br>
+            <span class="danger-highlight">操作不可逆，请谨慎！</span>
+        </div>
+    `;
+
+    // 更新确认按钮样式
+    confirmActionBtn.className = 'btn btn-danger';
+    confirmActionBtn.textContent = '确认删除（不可逆）';
+
+    // 确认按钮点击逻辑
+    confirmActionBtn.onclick = function() {
+        showLoading(true);
+
+        // ✅ 核心修复：正确生成删除URL
+        const deleteUrl = "{% url 'lowcode:model-delete' model_name='__MODEL_NAME__' %}".replace('__MODEL_NAME__', encodeURIComponent(modelName));
+        console.log(`生成删除URL：${deleteUrl}`);
+
+        // 获取CSRF令牌 - 兼容多种情况
+        let csrfToken = '{{ csrf_token }}';
+        if (!csrfToken) {
+            const match = document.cookie.match(/csrftoken=([^;]+)/);
+            csrfToken = match ? match[1] : '';
+        }
+        console.log(`CSRF令牌：${csrfToken}`);
+
+        // 发送删除请求
+        fetch(deleteUrl, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+                // 移除Content-Type，让浏览器自动处理
+                // 'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin', // 确保携带登录Cookie
+            body: JSON.stringify({}), // 空body，避免Django解析错误
+        })
+        .then(response => {
+            console.log(`响应状态码：${response.status}`);
+            if (!response.ok) {
+                throw new Error(`HTTP错误：${response.status} ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log(`删除响应数据：`, data);
+            if (data.code === 200) {
+                showToast(`模型 ${modelName} 已彻底删除（含数据表和数据）`, 'success');
+                // 延迟移除DOM，确保后端完成操作
+                setTimeout(() => {
+                    // 删除所有相关DOM元素
+                    document.querySelectorAll(`[data-model-name="${modelName}"]`).forEach(el => el.remove());
+
+                    // 更新计数徽章
+                    if (dataCountBadge) {
+                        const current = parseInt(dataCountBadge.textContent) || 0;
+                        const newCount = Math.max(0, current - 1);
+                        const searchTerm = searchInput ? searchInput.value.trim() : '';
+
+                        if (searchTerm) {
+                            const totalModels = document.querySelectorAll('.model-row, .model-item').length;
+                            dataCountBadge.innerHTML = `${newCount}/${totalModels} 个`;
+                        } else {
+                            dataCountBadge.textContent = `${newCount} 个`;
+                        }
+                    }
+
+                    // 检查空状态
+                    const visibleModels = document.querySelectorAll('.model-row:not([style*="none"]), .model-item:not([style*="none"])');
+                    if (emptyState && visibleModels.length === 0) {
+                        emptyState.style.display = 'block';
+                    }
+                }, 800);
+            } else {
+                showToast(`删除失败：${data.msg || '未知错误'}`, 'error');
+            }
+        })
+        .catch(err => {
+            console.error(`删除失败：`, err);
+            showToast(`删除失败：${err.message}`, 'error');
+        })
+        .finally(() => {
+            showLoading(false);
+            confirmModal.hide();
+            // 重置确认按钮
+            confirmActionBtn.className = 'btn btn-primary';
+            confirmActionBtn.textContent = '确认';
+        });
+    };
+
+    // 显示模态框
+    confirmModal.show();
+}
+
+    // 显示加载状态 - 增加空值保护
     function showLoading(show) {
+        if (!loadingOverlay) return;
+
         if (show) {
             loadingOverlay.classList.add('active');
             document.body.style.pointerEvents = 'none';
+            document.body.style.cursor = 'wait';
         } else {
             loadingOverlay.classList.remove('active');
             document.body.style.pointerEvents = 'auto';
+            document.body.style.cursor = 'default';
         }
     }
 
-    // 自定义提示框
+    // 自定义提示框 - 增加空值保护
     function showToast(message, type = 'success') {
         const toastContainer = document.getElementById('toastContainer');
         if (!toastContainer) return;
@@ -997,10 +1199,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const toast = document.createElement('div');
         toast.className = `custom-toast toast-${type} show`;
 
-        // 图标映射
         const iconMap = {
-            success: 'bi-check-circle',
-            error: 'bi-exclamation-circle'
+            success: 'bi-check-circle-fill',
+            error: 'bi-exclamation-circle-fill'
         };
 
         toast.innerHTML = `
@@ -1010,7 +1211,6 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         `;
 
-        // 添加到容器
         toastContainer.appendChild(toast);
 
         // 自动关闭
@@ -1019,7 +1219,7 @@ document.addEventListener('DOMContentLoaded', function () {
             setTimeout(() => {
                 if (toast.parentNode) toast.parentNode.removeChild(toast);
             }, 300);
-        }, 3500);
+        }, 4000);
     }
 
     // 防抖函数
@@ -1035,19 +1235,30 @@ document.addEventListener('DOMContentLoaded', function () {
         };
     }
 
-    // 初始化搜索状态
-    if (searchInput.value.trim()) {
+    // 初始化
+    if (searchInput && searchInput.value.trim()) {
         performSearch();
     }
 
-    // 初始化视图显示
-    if (currentView === 'list') {
-        listView.classList.remove('d-none');
-        cardView.classList.add('d-none');
-    } else {
-        cardView.classList.remove('d-none');
-        listView.classList.add('d-none');
+    // 延迟绑定删除按钮，确保DOM完全加载
+    setTimeout(bindDeleteButtons, 500);
+
+    // 监听模态框关闭事件，重置按钮样式
+    if (confirmModalEl) {
+        confirmModalEl.addEventListener('hidden.bs.modal', function () {
+            if (confirmActionBtn) {
+                confirmActionBtn.className = 'btn btn-primary';
+                confirmActionBtn.textContent = '确认';
+            }
+        });
     }
+
+    // 全局错误处理
+    window.addEventListener('unhandledrejection', function (event) {
+        console.error('未处理的Promise错误:', event.reason);
+        showToast('操作失败：发生未预期的错误', 'error');
+        showLoading(false);
+    });
 });
 </script>
 {% endblock %}

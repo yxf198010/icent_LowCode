@@ -288,7 +288,7 @@
                             {{ total_fields }}
                         {% endwith %}
                     </div>
-                    <a href="{% url 'admin:lowcode_modellowcode_changelist' %}" class="text-info">
+                    <a href="{% url 'admin:lowcode_lowcodemodelconfig_changelist' %}" class="text-info">
                         <i class="bi bi-arrow-right" aria-hidden="true"></i> 配置字段
                     </a>
                 </div>
@@ -390,7 +390,7 @@
                                     <div class="card-icon"><i class="bi bi-gear" aria-hidden="true"></i></div>
                                     <h3 class="card-title h6">模型配置</h3>
                                     <p class="card-text">编辑字段、修改表名、查看状态与统计</p>
-                                    <a href="{% url 'admin:lowcode_modellowcode_changelist' %}" class="btn btn-sm btn-outline-primary" aria-label="配置动态模型">配置模型</a>
+                                    <a href="{% url 'admin:lowcode_lowcodemodelconfig_changelist' %}" class="btn btn-sm btn-outline-primary" aria-label="配置动态模型">配置模型</a>
                                 </div>
                             </div>
                         </div>
